@@ -14,7 +14,9 @@ Under the hood this package makes extensive use of the [sfomuseum/go-database](h
 
 This package provides the core functionality for indexing one or more Who's On First sources (repos, etc.) in to a `database/sql` compatible database.
 
-However, it does NOT load any specific `database/sql` drivers by default. This is assumed to happen in separate `go-whosonfirst-database-{DATABASE}` packages. This package simply provides common code used to index Who's On First documents in a `database/sql` compatible database.
+However, it does NOT load any specific `database/sql` drivers by default. This is assumed to happen in separate `go-whosonfirst-database-{DATABASE}` packages.
+
+This package simply provides common code used to index Who's On First documents regardles of the underlying database engine.
 
 ### SQLite
 
