@@ -11,7 +11,7 @@ import (
 	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-reader"
-	"github.com/whosonfirst/go-whosonfirst-database/sql/tables"
+	wof_tables "github.com/whosonfirst/go-whosonfirst-database/sql/tables"
 	"github.com/whosonfirst/go-whosonfirst-feature/geometry"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
 	"github.com/whosonfirst/go-whosonfirst-uri"
@@ -88,7 +88,7 @@ func IndexRelationsFuncWithOptions(opts *IndexRelationsFuncOptions) IndexerPostI
 
 	cb := func(ctx context.Context, db *sql.DB, tables []database_sql.Table, record interface{}) error {
 
-		geojson_t, err := tables.NewGeoJSONTable(ctx)
+		geojson_t, err := wof_tables.NewGeoJSONTableWithDatabase(ctx, db)
 
 		if err != nil {
 			return fmt.Errorf("Failed to create new GeoJSON table, %w", err)

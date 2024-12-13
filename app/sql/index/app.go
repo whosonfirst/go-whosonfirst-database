@@ -2,11 +2,9 @@ package index
 
 import (
 	"context"
-	"database/sql"
 	"flag"
 	"fmt"
 	"log/slog"
-	"net/url"
 	"runtime"
 	"slices"
 
