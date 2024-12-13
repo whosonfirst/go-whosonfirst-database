@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/sfomuseum/go-database"
+	database_sql "github.com/sfomuseum/go-database/sql"
 )
 
 type FeatureTable interface {
-	database.Table
+	database_sql.Table
 	IndexFeature(context.Context, *sql.DB, []byte) error
 }

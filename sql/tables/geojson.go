@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/sfomuseum/go-database"
+	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/whosonfirst/go-whosonfirst-feature/alt"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
 )
@@ -28,7 +28,7 @@ func DefaultGeoJSONTableOptions() (*GeoJSONTableOptions, error) {
 }
 
 type GeoJSONTable struct {
-	database.Table
+	database_sql.Table
 	FeatureTable
 	name    string
 	options *GeoJSONTableOptions
@@ -40,7 +40,7 @@ type GeoJSONRow struct {
 	LastModified int64
 }
 
-func NewGeoJSONTableWithDatabase(ctx context.Context, db *sql.DB) (database.Table, error) {
+func NewGeoJSONTableWithDatabase(ctx context.Context, db *sql.DB) (database_sql.Table, error) {
 
 	opts, err := DefaultGeoJSONTableOptions()
 
@@ -51,7 +51,7 @@ func NewGeoJSONTableWithDatabase(ctx context.Context, db *sql.DB) (database.Tabl
 	return NewGeoJSONTableWithDatabaseAndOptions(ctx, db, opts)
 }
 
-func NewGeoJSONTableWithDatabaseAndOptions(ctx context.Context, db *sql.DB, opts *GeoJSONTableOptions) (database.Table, error) {
+func NewGeoJSONTableWithDatabaseAndOptions(ctx context.Context, db *sql.DB, opts *GeoJSONTableOptions) (database_sql.Table, error) {
 
 	t, err := NewGeoJSONTableWithOptions(ctx, opts)
 
@@ -68,7 +68,7 @@ func NewGeoJSONTableWithDatabaseAndOptions(ctx context.Context, db *sql.DB, opts
 	return t, nil
 }
 
-func NewGeoJSONTable(ctx context.Context) (database.Table, error) {
+func NewGeoJSONTable(ctx context.Context) (database_sql.Table, error) {
 
 	opts, err := DefaultGeoJSONTableOptions()
 
@@ -79,7 +79,7 @@ func NewGeoJSONTable(ctx context.Context) (database.Table, error) {
 	return NewGeoJSONTableWithOptions(ctx, opts)
 }
 
-func NewGeoJSONTableWithOptions(ctx context.Context, opts *GeoJSONTableOptions) (database.Table, error) {
+func NewGeoJSONTableWithOptions(ctx context.Context, opts *GeoJSONTableOptions) (database_sql.Table, error) {
 
 	t := GeoJSONTable{
 		name:    GEOJSON_TABLE_NAME,
@@ -99,7 +99,7 @@ func (t *GeoJSONTable) Schema(db *sql.DB) (string, error) {
 
 func (t *GeoJSONTable) InitializeTable(ctx context.Context, db *sql.DB) error {
 
-	return database.CreateTableIfNecessary(ctx, db, t)
+	return database_sql.CreateTableIfNecessary(ctx, db, t)
 }
 
 func (t *GeoJSONTable) IndexRecord(ctx context.Context, db *sql.DB, i interface{}) error {
@@ -142,7 +142,7 @@ func (t *GeoJSONTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) e
 	tx, err := db.Begin()
 
 	if err != nil {
-		return database.BeginTransactionError(t, err)
+		return database_sql.BeginTransactionError(t, err)
 	}
 
 	sql := fmt.Sprintf(`INSERT OR REPLACE INTO %s (
@@ -154,7 +154,7 @@ func (t *GeoJSONTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) e
 	stmt, err := tx.Prepare(sql)
 
 	if err != nil {
-		return database.PrepareStatementError(t, err)
+		return database_sql.PrepareStatementError(t, err)
 	}
 
 	defer stmt.Close()
@@ -164,13 +164,13 @@ func (t *GeoJSONTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) e
 	_, err = stmt.Exec(id, str_body, source, is_alt, alt_label, lastmod)
 
 	if err != nil {
-		return database.ExecuteStatementError(t, err)
+		return database_sql.ExecuteStatementError(t, err)
 	}
 
 	err = tx.Commit()
 
 	if err != nil {
-		return database.CommitTransactionError(t, err)
+		return database_sql.CommitTransactionError(t, err)
 	}
 
 	return nil

@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/sfomuseum/go-database"
+	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/whosonfirst/go-whosonfirst-feature/alt"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
 )
@@ -13,12 +13,12 @@ import (
 const SUPERSEDES_TABLE_NAME string = "supersedes"
 
 type SupersedesTable struct {
-	database.Table
+	database_sql.Table
 	FeatureTable
 	name string
 }
 
-func NewSupersedesTableWithDatabase(ctx context.Context, db *sql.DB) (database.Table, error) {
+func NewSupersedesTableWithDatabase(ctx context.Context, db *sql.DB) (database_sql.Table, error) {
 
 	t, err := NewSupersedesTable(ctx)
 
@@ -35,7 +35,7 @@ func NewSupersedesTableWithDatabase(ctx context.Context, db *sql.DB) (database.T
 	return t, nil
 }
 
-func NewSupersedesTable(ctx context.Context) (database.Table, error) {
+func NewSupersedesTable(ctx context.Context) (database_sql.Table, error) {
 
 	t := SupersedesTable{
 		name: SUPERSEDES_TABLE_NAME,
@@ -53,7 +53,7 @@ func (t *SupersedesTable) Schema(db *sql.DB) (string, error) {
 }
 
 func (t *SupersedesTable) InitializeTable(ctx context.Context, db *sql.DB) error {
-	return database.CreateTableIfNecessary(ctx, db, t)
+	return database_sql.CreateTableIfNecessary(ctx, db, t)
 }
 
 func (t *SupersedesTable) IndexRecord(ctx context.Context, db *sql.DB, i interface{}) error {
@@ -77,7 +77,7 @@ func (t *SupersedesTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte
 	tx, err := db.Begin()
 
 	if err != nil {
-		return database.BeginTransactionError(t, err)
+		return database_sql.BeginTransactionError(t, err)
 	}
 
 	sql := fmt.Sprintf(`INSERT OR REPLACE INTO %s (
@@ -89,7 +89,7 @@ func (t *SupersedesTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte
 	stmt, err := tx.Prepare(sql)
 
 	if err != nil {
-		return database.PrepareStatementError(t, err)
+		return database_sql.PrepareStatementError(t, err)
 	}
 
 	defer stmt.Close()
@@ -101,7 +101,7 @@ func (t *SupersedesTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte
 		_, err = stmt.Exec(id, id, other_id, lastmod)
 
 		if err != nil {
-			return database.ExecuteStatementError(t, err)
+			return database_sql.ExecuteStatementError(t, err)
 		}
 
 	}
@@ -113,7 +113,7 @@ func (t *SupersedesTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte
 		_, err = stmt.Exec(id, other_id, id, lastmod)
 
 		if err != nil {
-			return database.ExecuteStatementError(t, err)
+			return database_sql.ExecuteStatementError(t, err)
 		}
 
 	}
@@ -121,7 +121,7 @@ func (t *SupersedesTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte
 	err = tx.Commit()
 
 	if err != nil {
-		return database.CommitTransactionError(t, err)
+		return database_sql.CommitTransactionError(t, err)
 	}
 
 	return nil

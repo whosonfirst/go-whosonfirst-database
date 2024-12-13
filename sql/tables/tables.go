@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"text/template"
 
-	"github.com/sfomuseum/go-database"
+	database_sql "github.com/sfomuseum/go-database/sql"
 )
 
 //go:embed *.schema
@@ -16,7 +16,7 @@ var fs embed.FS
 
 func LoadSchema(db *sql.DB, table_name string) (string, error) {
 
-	driver := database.Driver(db)
+	driver := database_sql.Driver(db)
 
 	fname := fmt.Sprintf("%s.%s.schema", table_name, driver)
 

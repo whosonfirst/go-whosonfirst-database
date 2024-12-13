@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/sfomuseum/go-database"
+	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/whosonfirst/go-whosonfirst-feature/alt"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
 	"github.com/whosonfirst/go-whosonfirst-spr/v2"
@@ -29,13 +29,13 @@ func DefaultSPRTableOptions() (*SPRTableOptions, error) {
 }
 
 type SPRTable struct {
-	database.Table
+	database_sql.Table
 	FeatureTable
 	name    string
 	options *SPRTableOptions
 }
 
-func NewSPRTable(ctx context.Context) (database.Table, error) {
+func NewSPRTable(ctx context.Context) (database_sql.Table, error) {
 
 	opts, err := DefaultSPRTableOptions()
 
@@ -46,7 +46,7 @@ func NewSPRTable(ctx context.Context) (database.Table, error) {
 	return NewSPRTableWithOptions(ctx, opts)
 }
 
-func NewSPRTableWithOptions(ctx context.Context, opts *SPRTableOptions) (database.Table, error) {
+func NewSPRTableWithOptions(ctx context.Context, opts *SPRTableOptions) (database_sql.Table, error) {
 
 	t := SPRTable{
 		name:    SPR_TABLE_NAME,
@@ -56,7 +56,7 @@ func NewSPRTableWithOptions(ctx context.Context, opts *SPRTableOptions) (databas
 	return &t, nil
 }
 
-func NewSPRTableWithDatabase(ctx context.Context, db *sql.DB) (database.Table, error) {
+func NewSPRTableWithDatabase(ctx context.Context, db *sql.DB) (database_sql.Table, error) {
 
 	opts, err := DefaultSPRTableOptions()
 
@@ -67,7 +67,7 @@ func NewSPRTableWithDatabase(ctx context.Context, db *sql.DB) (database.Table, e
 	return NewSPRTableWithDatabaseAndOptions(ctx, db, opts)
 }
 
-func NewSPRTableWithDatabaseAndOptions(ctx context.Context, db *sql.DB, opts *SPRTableOptions) (database.Table, error) {
+func NewSPRTableWithDatabaseAndOptions(ctx context.Context, db *sql.DB, opts *SPRTableOptions) (database_sql.Table, error) {
 
 	t, err := NewSPRTableWithOptions(ctx, opts)
 
@@ -85,7 +85,7 @@ func NewSPRTableWithDatabaseAndOptions(ctx context.Context, db *sql.DB, opts *SP
 }
 
 func (t *SPRTable) InitializeTable(ctx context.Context, db *sql.DB) error {
-	return database.CreateTableIfNecessary(ctx, db, t)
+	return database_sql.CreateTableIfNecessary(ctx, db, t)
 }
 
 func (t *SPRTable) Name() string {
@@ -124,7 +124,7 @@ func (t *SPRTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) error
 		_s, err := spr.WhosOnFirstAltSPR(f)
 
 		if err != nil {
-			return database.WrapError(t, fmt.Errorf("Failed to generate SPR for alt geom, %w", err))
+			return database_sql.WrapError(t, fmt.Errorf("Failed to generate SPR for alt geom, %w", err))
 		}
 
 		s = _s
@@ -134,7 +134,7 @@ func (t *SPRTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) error
 		_s, err := spr.WhosOnFirstSPR(f)
 
 		if err != nil {
-			return database.WrapError(t, fmt.Errorf("Failed to SPR, %w", err))
+			return database_sql.WrapError(t, fmt.Errorf("Failed to SPR, %w", err))
 		}
 
 		s = _s
@@ -202,13 +202,13 @@ func (t *SPRTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) error
 	tx, err := db.Begin()
 
 	if err != nil {
-		return database.BeginTransactionError(t, err)
+		return database_sql.BeginTransactionError(t, err)
 	}
 
 	stmt, err := tx.Prepare(sql)
 
 	if err != nil {
-		return database.PrepareStatementError(t, err)
+		return database_sql.PrepareStatementError(t, err)
 	}
 
 	defer stmt.Close()
@@ -216,13 +216,13 @@ func (t *SPRTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) error
 	_, err = stmt.Exec(args...)
 
 	if err != nil {
-		return database.ExecuteStatementError(t, err)
+		return database_sql.ExecuteStatementError(t, err)
 	}
 
 	err = tx.Commit()
 
 	if err != nil {
-		return database.CommitTransactionError(t, err)
+		return database_sql.CommitTransactionError(t, err)
 	}
 
 	return nil

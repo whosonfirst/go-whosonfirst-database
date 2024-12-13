@@ -10,7 +10,7 @@ import (
 	"runtime"
 	"slices"
 
-	"github.com/sfomuseum/go-database"
+	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/sfomuseum/go-flags/flagset"
 	"github.com/whosonfirst/go-reader"
 	"github.com/whosonfirst/go-whosonfirst-database/sql/indexer"
@@ -68,23 +68,10 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 
 	logger := slog.Default()
 
-	// START OF put me in sfomuseum/go-database/sql ...
-	
-	u, err := url.Parse(db_uri)
+	db, err := database_sql.OpenWithURI(ctx, db_uri)
 
 	if err != nil {
 		return err
-	}
-
-	q := u.Query()
-
-	engine := u.Host
-	dsn := q.Get("dsn")
-
-	db, err := sql.Open(engine, dsn)
-
-	if err != nil {
-		return fmt.Errorf("Unable to create database (%s) because %v", db_uri, err)
 	}
 
 	defer func() {
@@ -96,37 +83,28 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 		}
 	}()
 
-	switch database.Driver(db) {
+	switch database_sql.Driver(db) {
 	case "sqlite":
 
-		pragma := database.DefaultSQLitePragma()
-		err := database.ConfigureSQLitePragma(ctx, db, pragma)
-
-		if err != nil {
-			return fmt.Errorf("Failed to configure SQLite pragma, %w", err)
-		}
-
-		// END OF put me in sfomuseum/go-database/sql ...
-		
 		// optimize query performance
 		// https://www.sqlite.org/pragma.html#pragma_optimize
 		if optimize {
-			
+
 			defer func() {
-				
+
 				_, err = db.Exec("PRAGMA optimize")
-				
+
 				if err != nil {
 					logger.Error("Failed to optimize", "error", err)
 					return
 				}
 			}()
-			
+
 		}
-		
+
 	}
 
-	to_index := make([]database.Table, 0)
+	to_index := make([]database_sql.Table, 0)
 
 	if geojson || all {
 

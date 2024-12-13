@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sfomuseum/go-database"
+	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/whosonfirst/go-whosonfirst-feature/alt"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
 )
@@ -14,7 +14,7 @@ import (
 const ANCESTORS_TABLE_NAME string = "ancestors"
 
 type AncestorsTable struct {
-	database.Table
+	database_sql.Table
 	FeatureTable
 	name string
 }
@@ -26,7 +26,7 @@ type AncestorsRow struct {
 	LastModified      int64
 }
 
-func NewAncestorsTableWithDatabase(ctx context.Context, db *sql.DB) (database.Table, error) {
+func NewAncestorsTableWithDatabase(ctx context.Context, db *sql.DB) (database_sql.Table, error) {
 
 	t, err := NewAncestorsTable(ctx)
 
@@ -37,13 +37,13 @@ func NewAncestorsTableWithDatabase(ctx context.Context, db *sql.DB) (database.Ta
 	err = t.InitializeTable(ctx, db)
 
 	if err != nil {
-		return nil, database.InitializeTableError(t, err)
+		return nil, database_sql.InitializeTableError(t, err)
 	}
 
 	return t, nil
 }
 
-func NewAncestorsTable(ctx context.Context) (database.Table, error) {
+func NewAncestorsTable(ctx context.Context) (database_sql.Table, error) {
 
 	t := AncestorsTable{
 		name: ANCESTORS_TABLE_NAME,
@@ -62,7 +62,7 @@ func (t *AncestorsTable) Schema(db *sql.DB) (string, error) {
 }
 
 func (t *AncestorsTable) InitializeTable(ctx context.Context, db *sql.DB) error {
-	return database.CreateTableIfNecessary(ctx, db, t)
+	return database_sql.CreateTableIfNecessary(ctx, db, t)
 }
 
 func (t *AncestorsTable) IndexRecord(ctx context.Context, db *sql.DB, i interface{}) error {
@@ -84,7 +84,7 @@ func (t *AncestorsTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte)
 	tx, err := db.Begin()
 
 	if err != nil {
-		return database.BeginTransactionError(t, err)
+		return database_sql.BeginTransactionError(t, err)
 	}
 
 	sql := fmt.Sprintf(`DELETE FROM %s WHERE id = ?`, t.Name())
@@ -92,7 +92,7 @@ func (t *AncestorsTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte)
 	stmt, err := tx.Prepare(sql)
 
 	if err != nil {
-		return database.PrepareStatementError(t, err)
+		return database_sql.PrepareStatementError(t, err)
 	}
 
 	defer stmt.Close()
@@ -100,7 +100,7 @@ func (t *AncestorsTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte)
 	_, err = stmt.Exec(id)
 
 	if err != nil {
-		return database.ExecuteStatementError(t, err)
+		return database_sql.ExecuteStatementError(t, err)
 	}
 
 	hierarchies := properties.Hierarchies(f)
@@ -121,7 +121,7 @@ func (t *AncestorsTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte)
 			stmt, err := tx.Prepare(sql)
 
 			if err != nil {
-				return database.PrepareStatementError(t, err)
+				return database_sql.PrepareStatementError(t, err)
 			}
 
 			defer stmt.Close()
@@ -129,7 +129,7 @@ func (t *AncestorsTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte)
 			_, err = stmt.Exec(id, ancestor_id, ancestor_placetype, lastmod)
 
 			if err != nil {
-				return database.ExecuteStatementError(t, err)
+				return database_sql.ExecuteStatementError(t, err)
 			}
 
 		}
@@ -139,7 +139,7 @@ func (t *AncestorsTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte)
 	err = tx.Commit()
 
 	if err != nil {
-		return database.CommitTransactionError(t, err)
+		return database_sql.CommitTransactionError(t, err)
 	}
 
 	return nil

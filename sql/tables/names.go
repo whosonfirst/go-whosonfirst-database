@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/sfomuseum/go-database"
+	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/whosonfirst/go-whosonfirst-feature/alt"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
 	"github.com/whosonfirst/go-whosonfirst-names/tags"
@@ -14,7 +14,7 @@ import (
 const NAMES_TABLE_NAME string = "names"
 
 type NamesTable struct {
-	database.Table
+	database_sql.Table
 	FeatureTable
 	name string
 }
@@ -34,7 +34,7 @@ type NamesRow struct {
 	LastModified int64
 }
 
-func NewNamesTableWithDatabase(ctx context.Context, db *sql.DB) (database.Table, error) {
+func NewNamesTableWithDatabase(ctx context.Context, db *sql.DB) (database_sql.Table, error) {
 
 	t, err := NewNamesTable(ctx)
 
@@ -45,13 +45,13 @@ func NewNamesTableWithDatabase(ctx context.Context, db *sql.DB) (database.Table,
 	err = t.InitializeTable(ctx, db)
 
 	if err != nil {
-		return nil, database.InitializeTableError(t, err)
+		return nil, database_sql.InitializeTableError(t, err)
 	}
 
 	return t, nil
 }
 
-func NewNamesTable(ctx context.Context) (database.Table, error) {
+func NewNamesTable(ctx context.Context) (database_sql.Table, error) {
 
 	t := NamesTable{
 		name: NAMES_TABLE_NAME,
@@ -70,7 +70,7 @@ func (t *NamesTable) Schema(db *sql.DB) (string, error) {
 
 func (t *NamesTable) InitializeTable(ctx context.Context, db *sql.DB) error {
 
-	return database.CreateTableIfNecessary(ctx, db, t)
+	return database_sql.CreateTableIfNecessary(ctx, db, t)
 }
 
 func (t *NamesTable) IndexRecord(ctx context.Context, db *sql.DB, i interface{}) error {
@@ -103,7 +103,7 @@ func (t *NamesTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) err
 	tx, err := db.Begin()
 
 	if err != nil {
-		return database.BeginTransactionError(t, err)
+		return database_sql.BeginTransactionError(t, err)
 	}
 
 	sql := fmt.Sprintf(`DELETE FROM %s WHERE id = ?`, t.Name())
@@ -111,7 +111,7 @@ func (t *NamesTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) err
 	stmt, err := tx.Prepare(sql)
 
 	if err != nil {
-		return database.PrepareStatementError(t, err)
+		return database_sql.PrepareStatementError(t, err)
 	}
 
 	defer stmt.Close()
@@ -119,7 +119,7 @@ func (t *NamesTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) err
 	_, err = stmt.Exec(id)
 
 	if err != nil {
-		return database.ExecuteStatementError(t, err)
+		return database_sql.ExecuteStatementError(t, err)
 	}
 
 	for tag, names := range names {
@@ -127,7 +127,7 @@ func (t *NamesTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) err
 		lt, err := tags.NewLangTag(tag)
 
 		if err != nil {
-			return database.WrapError(t, fmt.Errorf("Failed to create new language tag for '%s', %w", tag, err))
+			return database_sql.WrapError(t, fmt.Errorf("Failed to create new language tag for '%s', %w", tag, err))
 		}
 
 		for _, n := range names {
@@ -151,7 +151,7 @@ func (t *NamesTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) err
 			stmt, err := tx.Prepare(sql)
 
 			if err != nil {
-				return database.PrepareStatementError(t, err)
+				return database_sql.PrepareStatementError(t, err)
 			}
 
 			defer stmt.Close()
@@ -159,7 +159,7 @@ func (t *NamesTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) err
 			_, err = stmt.Exec(id, pt, co, lt.Language(), lt.ExtLang(), lt.Script(), lt.Region(), lt.Variant(), lt.Extension(), lt.PrivateUse(), n, lastmod)
 
 			if err != nil {
-				return database.ExecuteStatementError(t, err)
+				return database_sql.ExecuteStatementError(t, err)
 			}
 
 		}
@@ -168,7 +168,7 @@ func (t *NamesTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) err
 	err = tx.Commit()
 
 	if err != nil {
-		return database.CommitTransactionError(t, err)
+		return database_sql.CommitTransactionError(t, err)
 	}
 
 	return nil

@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/sfomuseum/go-database"
+	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/whosonfirst/go-whosonfirst-feature/alt"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
 	"github.com/whosonfirst/go-whosonfirst-spelunker/document"
@@ -29,13 +29,13 @@ func DefaultSpelunkerTableOptions() (*SpelunkerTableOptions, error) {
 }
 
 type SpelunkerTable struct {
-	database.Table
+	database_sql.Table
 	FeatureTable
 	name    string
 	options *SpelunkerTableOptions
 }
 
-func NewSpelunkerTableWithDatabase(ctx context.Context, db *sql.DB) (database.Table, error) {
+func NewSpelunkerTableWithDatabase(ctx context.Context, db *sql.DB) (database_sql.Table, error) {
 
 	opts, err := DefaultSpelunkerTableOptions()
 
@@ -46,7 +46,7 @@ func NewSpelunkerTableWithDatabase(ctx context.Context, db *sql.DB) (database.Ta
 	return NewSpelunkerTableWithDatabaseAndOptions(ctx, db, opts)
 }
 
-func NewSpelunkerTableWithDatabaseAndOptions(ctx context.Context, db *sql.DB, opts *SpelunkerTableOptions) (database.Table, error) {
+func NewSpelunkerTableWithDatabaseAndOptions(ctx context.Context, db *sql.DB, opts *SpelunkerTableOptions) (database_sql.Table, error) {
 
 	t, err := NewSpelunkerTableWithOptions(ctx, opts)
 
@@ -63,7 +63,7 @@ func NewSpelunkerTableWithDatabaseAndOptions(ctx context.Context, db *sql.DB, op
 	return t, nil
 }
 
-func NewSpelunkerTable(ctx context.Context) (database.Table, error) {
+func NewSpelunkerTable(ctx context.Context) (database_sql.Table, error) {
 
 	opts, err := DefaultSpelunkerTableOptions()
 
@@ -74,7 +74,7 @@ func NewSpelunkerTable(ctx context.Context) (database.Table, error) {
 	return NewSpelunkerTableWithOptions(ctx, opts)
 }
 
-func NewSpelunkerTableWithOptions(ctx context.Context, opts *SpelunkerTableOptions) (database.Table, error) {
+func NewSpelunkerTableWithOptions(ctx context.Context, opts *SpelunkerTableOptions) (database_sql.Table, error) {
 
 	t := SpelunkerTable{
 		name:    SPELUNKER_TABLE_NAME,
@@ -93,7 +93,7 @@ func (t *SpelunkerTable) Schema(db *sql.DB) (string, error) {
 }
 
 func (t *SpelunkerTable) InitializeTable(ctx context.Context, db *sql.DB) error {
-	return database.CreateTableIfNecessary(ctx, db, t)
+	return database_sql.CreateTableIfNecessary(ctx, db, t)
 }
 
 func (t *SpelunkerTable) IndexRecord(ctx context.Context, db *sql.DB, i interface{}) error {
@@ -142,7 +142,7 @@ func (t *SpelunkerTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte)
 	tx, err := db.Begin()
 
 	if err != nil {
-		return database.BeginTransactionError(t, err)
+		return database_sql.BeginTransactionError(t, err)
 	}
 
 	sql := fmt.Sprintf(`INSERT OR REPLACE INTO %s (
@@ -154,7 +154,7 @@ func (t *SpelunkerTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte)
 	stmt, err := tx.Prepare(sql)
 
 	if err != nil {
-		return database.PrepareStatementError(t, err)
+		return database_sql.PrepareStatementError(t, err)
 	}
 
 	defer stmt.Close()
@@ -164,13 +164,13 @@ func (t *SpelunkerTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte)
 	_, err = stmt.Exec(id, str_doc, source, is_alt, alt_label, lastmod)
 
 	if err != nil {
-		return database.ExecuteStatementError(t, err)
+		return database_sql.ExecuteStatementError(t, err)
 	}
 
 	err = tx.Commit()
 
 	if err != nil {
-		return database.CommitTransactionError(t, err)
+		return database_sql.CommitTransactionError(t, err)
 	}
 
 	return nil

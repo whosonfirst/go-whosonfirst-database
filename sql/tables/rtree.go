@@ -7,7 +7,7 @@ import (
 
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/encoding/wkt"
-	"github.com/sfomuseum/go-database"
+	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/whosonfirst/go-whosonfirst-feature/alt"
 	"github.com/whosonfirst/go-whosonfirst-feature/geometry"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
@@ -29,13 +29,13 @@ func DefaultRTreeTableOptions() (*RTreeTableOptions, error) {
 }
 
 type RTreeTable struct {
-	database.Table
+	database_sql.Table
 	FeatureTable
 	name    string
 	options *RTreeTableOptions
 }
 
-func NewRTreeTable(ctx context.Context) (database.Table, error) {
+func NewRTreeTable(ctx context.Context) (database_sql.Table, error) {
 
 	opts, err := DefaultRTreeTableOptions()
 
@@ -46,7 +46,7 @@ func NewRTreeTable(ctx context.Context) (database.Table, error) {
 	return NewRTreeTableWithOptions(ctx, opts)
 }
 
-func NewRTreeTableWithOptions(ctx context.Context, opts *RTreeTableOptions) (database.Table, error) {
+func NewRTreeTableWithOptions(ctx context.Context, opts *RTreeTableOptions) (database_sql.Table, error) {
 
 	t := RTreeTable{
 		name:    RTREE_TABLE_NAME,
@@ -56,7 +56,7 @@ func NewRTreeTableWithOptions(ctx context.Context, opts *RTreeTableOptions) (dat
 	return &t, nil
 }
 
-func NewRTreeTableWithDatabase(ctx context.Context, db *sql.DB) (database.Table, error) {
+func NewRTreeTableWithDatabase(ctx context.Context, db *sql.DB) (database_sql.Table, error) {
 
 	opts, err := DefaultRTreeTableOptions()
 
@@ -67,7 +67,7 @@ func NewRTreeTableWithDatabase(ctx context.Context, db *sql.DB) (database.Table,
 	return NewRTreeTableWithDatabaseAndOptions(ctx, db, opts)
 }
 
-func NewRTreeTableWithDatabaseAndOptions(ctx context.Context, db *sql.DB, opts *RTreeTableOptions) (database.Table, error) {
+func NewRTreeTableWithDatabaseAndOptions(ctx context.Context, db *sql.DB, opts *RTreeTableOptions) (database_sql.Table, error) {
 
 	t, err := NewRTreeTableWithOptions(ctx, opts)
 
@@ -112,7 +112,7 @@ func (t *RTreeTable) Schema(db *sql.DB) (string, error) {
 
 func (t *RTreeTable) InitializeTable(ctx context.Context, db *sql.DB) error {
 
-	return database.CreateTableIfNecessary(ctx, db, t)
+	return database_sql.CreateTableIfNecessary(ctx, db, t)
 }
 
 func (t *RTreeTable) IndexRecord(ctx context.Context, db *sql.DB, i interface{}) error {
@@ -184,7 +184,7 @@ func (t *RTreeTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) err
 	stmt, err := tx.Prepare(sql)
 
 	if err != nil {
-		return database.PrepareStatementError(t, err)
+		return database_sql.PrepareStatementError(t, err)
 	}
 
 	defer stmt.Close()
@@ -198,7 +198,7 @@ func (t *RTreeTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) err
 		mp = []orb.Polygon{orb_geom.(orb.Polygon)}
 	default:
 		// This should never happen (we check above) but just in case...
-		return database.WrapError(t, fmt.Errorf("Invalid or unsupported geometry type, %s", geom_type))
+		return database_sql.WrapError(t, fmt.Errorf("Invalid or unsupported geometry type, %s", geom_type))
 	}
 
 	for _, poly := range mp {
@@ -217,14 +217,14 @@ func (t *RTreeTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) err
 		_, err = stmt.Exec(sw.X(), ne.X(), sw.Y(), ne.Y(), wof_id, is_alt, alt_label, enc_geom, lastmod)
 
 		if err != nil {
-			return database.ExecuteStatementError(t, err)
+			return database_sql.ExecuteStatementError(t, err)
 		}
 	}
 
 	err = tx.Commit()
 
 	if err != nil {
-		return database.CommitTransactionError(t, err)
+		return database_sql.CommitTransactionError(t, err)
 	}
 
 	return nil

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sfomuseum/go-database"
+	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/whosonfirst/go-whosonfirst-feature/alt"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
 	"github.com/whosonfirst/go-whosonfirst-names/tags"
@@ -15,12 +15,12 @@ import (
 const SEARCH_TABLE_NAME string = "search"
 
 type SearchTable struct {
-	database.Table
+	database_sql.Table
 	FeatureTable
 	name string
 }
 
-func NewSearchTableWithDatabase(ctx context.Context, db *sql.DB) (database.Table, error) {
+func NewSearchTableWithDatabase(ctx context.Context, db *sql.DB) (database_sql.Table, error) {
 
 	t, err := NewSearchTable(ctx)
 
@@ -37,7 +37,7 @@ func NewSearchTableWithDatabase(ctx context.Context, db *sql.DB) (database.Table
 	return t, nil
 }
 
-func NewSearchTable(ctx context.Context) (database.Table, error) {
+func NewSearchTable(ctx context.Context) (database_sql.Table, error) {
 
 	t := SearchTable{
 		name: SEARCH_TABLE_NAME,
@@ -48,7 +48,7 @@ func NewSearchTable(ctx context.Context) (database.Table, error) {
 
 func (t *SearchTable) InitializeTable(ctx context.Context, db *sql.DB) error {
 
-	return database.CreateTableIfNecessary(ctx, db, t)
+	return database_sql.CreateTableIfNecessary(ctx, db, t)
 }
 
 func (t *SearchTable) Name() string {
@@ -124,7 +124,7 @@ func (t *SearchTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) er
 		lt, err := tags.NewLangTag(tag)
 
 		if err != nil {
-			return database.WrapError(t, fmt.Errorf("Failed to create new lang tag for '%s', %w", tag, err))
+			return database_sql.WrapError(t, fmt.Errorf("Failed to create new lang tag for '%s', %w", tag, err))
 		}
 
 		possible := make([]string, 0)
@@ -184,13 +184,13 @@ func (t *SearchTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) er
 	tx, err := db.Begin()
 
 	if err != nil {
-		return database.BeginTransactionError(t, err)
+		return database_sql.BeginTransactionError(t, err)
 	}
 
 	s, err := tx.Prepare(fmt.Sprintf("DELETE FROM %s WHERE id = ?", t.Name()))
 
 	if err != nil {
-		return database.PrepareStatementError(t, err)
+		return database_sql.PrepareStatementError(t, err)
 	}
 
 	defer s.Close()
@@ -198,13 +198,13 @@ func (t *SearchTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) er
 	_, err = s.Exec(id)
 
 	if err != nil {
-		return database.ExecuteStatementError(t, err)
+		return database_sql.ExecuteStatementError(t, err)
 	}
 
 	stmt, err := tx.Prepare(sql)
 
 	if err != nil {
-		return database.PrepareStatementError(t, err)
+		return database_sql.PrepareStatementError(t, err)
 	}
 
 	defer stmt.Close()
@@ -212,13 +212,13 @@ func (t *SearchTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte) er
 	_, err = stmt.Exec(args...)
 
 	if err != nil {
-		return database.ExecuteStatementError(t, err)
+		return database_sql.ExecuteStatementError(t, err)
 	}
 
 	err = tx.Commit()
 
 	if err != nil {
-		return database.CommitTransactionError(t, err)
+		return database_sql.CommitTransactionError(t, err)
 	}
 
 	return nil

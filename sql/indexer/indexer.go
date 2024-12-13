@@ -10,19 +10,19 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/sfomuseum/go-database"
+	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/whosonfirst/go-whosonfirst-iterate/v2/emitter"
 	"github.com/whosonfirst/go-whosonfirst-iterate/v2/iterator"
 )
 
 // IndexerPostIndexFunc is a custom function to invoke after a record has been indexed.
-type IndexerPostIndexFunc func(context.Context, *sql.DB, []database.Table, interface{}) error
+type IndexerPostIndexFunc func(context.Context, *sql.DB, []database_sql.Table, interface{}) error
 
 // IndexerLoadRecordFunc is a custom `whosonfirst/go-whosonfirst-iterate/v2` callback function to be invoked
 // for each record processed by the `IndexURIs` method.
 type IndexerLoadRecordFunc func(context.Context, string, io.ReadSeeker, ...interface{}) (interface{}, error)
 
-// Indexer is a struct that provides methods for indexing records in one or more SQLite database tables
+// Indexer is a struct that provides methods for indexing records in one or more SQLite database_sql.tables
 type Indexer struct {
 	// iterator_callback is the `whosonfirst/go-whosonfirst-iterate/v2` callback function used by the `IndexPaths` method
 	iterator_callback emitter.EmitterCallbackFunc
@@ -34,10 +34,10 @@ type Indexer struct {
 
 // IndexerOptions
 type IndexerOptions struct {
-	// DB is the `database/sql.DB` instance that records will be indexed in.
+	// DB is the `database_sql.sql.DB` instance that records will be indexed in.
 	DB *sql.DB
-	// Tables is the list of `sfomuseum/go-database.Table` instances that records will be indexed in.
-	Tables []database.Table
+	// Tables is the list of `sfomuseum/go-database_sql.Table` instances that records will be indexed in.
+	Tables []database_sql.Table
 	// LoadRecordFunc is a custom `whosonfirst/go-whosonfirst-iterate/v2` callback function to be invoked
 	// for each record processed by	the `IndexURIs`	method.
 	LoadRecordFunc IndexerLoadRecordFunc

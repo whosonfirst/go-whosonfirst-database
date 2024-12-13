@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/sfomuseum/go-database"
+	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-whosonfirst-feature/alt"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
@@ -27,7 +27,7 @@ func DefaultPropertiesTableOptions() (*PropertiesTableOptions, error) {
 }
 
 type PropertiesTable struct {
-	database.Table
+	database_sql.Table
 	FeatureTable
 	name    string
 	options *PropertiesTableOptions
@@ -39,7 +39,7 @@ type PropertiesRow struct {
 	LastModified int64
 }
 
-func NewPropertiesTableWithDatabase(ctx context.Context, db *sql.DB) (database.Table, error) {
+func NewPropertiesTableWithDatabase(ctx context.Context, db *sql.DB) (database_sql.Table, error) {
 
 	opts, err := DefaultPropertiesTableOptions()
 
@@ -50,7 +50,7 @@ func NewPropertiesTableWithDatabase(ctx context.Context, db *sql.DB) (database.T
 	return NewPropertiesTableWithDatabaseAndOptions(ctx, db, opts)
 }
 
-func NewPropertiesTableWithDatabaseAndOptions(ctx context.Context, db *sql.DB, opts *PropertiesTableOptions) (database.Table, error) {
+func NewPropertiesTableWithDatabaseAndOptions(ctx context.Context, db *sql.DB, opts *PropertiesTableOptions) (database_sql.Table, error) {
 
 	t, err := NewPropertiesTableWithOptions(ctx, opts)
 
@@ -61,13 +61,13 @@ func NewPropertiesTableWithDatabaseAndOptions(ctx context.Context, db *sql.DB, o
 	err = t.InitializeTable(ctx, db)
 
 	if err != nil {
-		return nil, database.InitializeTableError(t, err)
+		return nil, database_sql.InitializeTableError(t, err)
 	}
 
 	return t, nil
 }
 
-func NewPropertiesTable(ctx context.Context) (database.Table, error) {
+func NewPropertiesTable(ctx context.Context) (database_sql.Table, error) {
 
 	opts, err := DefaultPropertiesTableOptions()
 
@@ -78,7 +78,7 @@ func NewPropertiesTable(ctx context.Context) (database.Table, error) {
 	return NewPropertiesTableWithOptions(ctx, opts)
 }
 
-func NewPropertiesTableWithOptions(ctx context.Context, opts *PropertiesTableOptions) (database.Table, error) {
+func NewPropertiesTableWithOptions(ctx context.Context, opts *PropertiesTableOptions) (database_sql.Table, error) {
 
 	t := PropertiesTable{
 		name:    PROPERTIES_TABLE_NAME,
@@ -98,7 +98,7 @@ func (t *PropertiesTable) Schema(db *sql.DB) (string, error) {
 
 func (t *PropertiesTable) InitializeTable(ctx context.Context, db *sql.DB) error {
 
-	return database.CreateTableIfNecessary(ctx, db, t)
+	return database_sql.CreateTableIfNecessary(ctx, db, t)
 }
 
 func (t *PropertiesTable) IndexRecord(ctx context.Context, db *sql.DB, i interface{}) error {
@@ -130,7 +130,7 @@ func (t *PropertiesTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte
 	tx, err := db.Begin()
 
 	if err != nil {
-		return database.BeginTransactionError(t, err)
+		return database_sql.BeginTransactionError(t, err)
 	}
 
 	sql := fmt.Sprintf(`INSERT OR REPLACE INTO %s (
@@ -142,7 +142,7 @@ func (t *PropertiesTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte
 	stmt, err := tx.Prepare(sql)
 
 	if err != nil {
-		return database.PrepareStatementError(t, err)
+		return database_sql.PrepareStatementError(t, err)
 	}
 
 	defer stmt.Close()
@@ -153,13 +153,13 @@ func (t *PropertiesTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte
 	_, err = stmt.Exec(id, str_props, is_alt, alt_label, lastmod)
 
 	if err != nil {
-		return database.ExecuteStatementError(t, err)
+		return database_sql.ExecuteStatementError(t, err)
 	}
 
 	err = tx.Commit()
 
 	if err != nil {
-		return database.CommitTransactionError(t, err)
+		return database_sql.CommitTransactionError(t, err)
 	}
 
 	return nil

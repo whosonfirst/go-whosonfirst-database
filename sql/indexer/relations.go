@@ -2,19 +2,19 @@ package indexer
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"io"
 	"log/slog"
-	"database/sql"
 	"sync"
 
+	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-reader"
+	"github.com/whosonfirst/go-whosonfirst-database/sql/tables"
 	"github.com/whosonfirst/go-whosonfirst-feature/geometry"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
-	wof_tables "github.com/whosonfirst/go-whosonfirst-database/sql/tables"
 	"github.com/whosonfirst/go-whosonfirst-uri"
-	"github.com/sfomuseum/go-database"
 )
 
 // LoadRecordFuncOptions is a struct to define options when loading Who's On First feature records.
@@ -86,9 +86,9 @@ func IndexRelationsFuncWithOptions(opts *IndexRelationsFuncOptions) IndexerPostI
 
 	seen := new(sync.Map)
 
-	cb := func(ctx context.Context, db *sql.DB, tables []database.Table, record interface{}) error {
+	cb := func(ctx context.Context, db *sql.DB, tables []database_sql.Table, record interface{}) error {
 
-		geojson_t, err := wof_tables.NewGeoJSONTable(ctx)
+		geojson_t, err := tables.NewGeoJSONTable(ctx)
 
 		if err != nil {
 			return fmt.Errorf("Failed to create new GeoJSON table, %w", err)

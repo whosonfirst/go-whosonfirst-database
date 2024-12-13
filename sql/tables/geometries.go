@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/paulmach/orb/encoding/wkt"
-	"github.com/sfomuseum/go-database"
+	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/whosonfirst/go-whosonfirst-feature/alt"
 	"github.com/whosonfirst/go-whosonfirst-feature/geometry"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
@@ -28,7 +28,7 @@ func DefaultGeometriesTableOptions() (*GeometriesTableOptions, error) {
 }
 
 type GeometriesTable struct {
-	database.Table
+	database_sql.Table
 	FeatureTable
 	name    string
 	options *GeometriesTableOptions
@@ -40,7 +40,7 @@ type GeometriesRow struct {
 	LastModified int64
 }
 
-func NewGeometriesTable(ctx context.Context) (database.Table, error) {
+func NewGeometriesTable(ctx context.Context) (database_sql.Table, error) {
 
 	opts, err := DefaultGeometriesTableOptions()
 
@@ -51,7 +51,7 @@ func NewGeometriesTable(ctx context.Context) (database.Table, error) {
 	return NewGeometriesTableWithOptions(ctx, opts)
 }
 
-func NewGeometriesTableWithOptions(ctx context.Context, opts *GeometriesTableOptions) (database.Table, error) {
+func NewGeometriesTableWithOptions(ctx context.Context, opts *GeometriesTableOptions) (database_sql.Table, error) {
 
 	t := GeometriesTable{
 		name:    GEOMETRIES_TABLE_NAME,
@@ -61,7 +61,7 @@ func NewGeometriesTableWithOptions(ctx context.Context, opts *GeometriesTableOpt
 	return &t, nil
 }
 
-func NewGeometriesTableWithDatabase(ctx context.Context, db *sql.DB) (database.Table, error) {
+func NewGeometriesTableWithDatabase(ctx context.Context, db *sql.DB) (database_sql.Table, error) {
 
 	opts, err := DefaultGeometriesTableOptions()
 
@@ -72,7 +72,7 @@ func NewGeometriesTableWithDatabase(ctx context.Context, db *sql.DB) (database.T
 	return NewGeometriesTableWithDatabaseAndOptions(ctx, db, opts)
 }
 
-func NewGeometriesTableWithDatabaseAndOptions(ctx context.Context, db *sql.DB, opts *GeometriesTableOptions) (database.Table, error) {
+func NewGeometriesTableWithDatabaseAndOptions(ctx context.Context, db *sql.DB, opts *GeometriesTableOptions) (database_sql.Table, error) {
 
 	t, err := NewGeometriesTableWithOptions(ctx, opts)
 
@@ -110,7 +110,7 @@ func (t *GeometriesTable) Schema(db *sql.DB) (string, error) {
 
 func (t *GeometriesTable) InitializeTable(ctx context.Context, db *sql.DB) error {
 
-	return database.CreateTableIfNecessary(ctx, db, t)
+	return database_sql.CreateTableIfNecessary(ctx, db, t)
 }
 
 func (t *GeometriesTable) IndexRecord(ctx context.Context, db *sql.DB, i interface{}) error {
@@ -142,7 +142,7 @@ func (t *GeometriesTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte
 	tx, err := db.Begin()
 
 	if err != nil {
-		return database.BeginTransactionError(t, err)
+		return database_sql.BeginTransactionError(t, err)
 	}
 
 	geojson_geom, err := geometry.Geometry(f)
@@ -164,7 +164,7 @@ func (t *GeometriesTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte
 	stmt, err := tx.Prepare(sql)
 
 	if err != nil {
-		return database.PrepareStatementError(t, err)
+		return database_sql.PrepareStatementError(t, err)
 	}
 
 	defer stmt.Close()
@@ -174,13 +174,13 @@ func (t *GeometriesTable) IndexFeature(ctx context.Context, db *sql.DB, f []byte
 	_, err = stmt.Exec(id, is_alt, alt_label, geom_type, lastmod)
 
 	if err != nil {
-		return database.ExecuteStatementError(t, err)
+		return database_sql.ExecuteStatementError(t, err)
 	}
 
 	err = tx.Commit()
 
 	if err != nil {
-		return database.CommitTransactionError(t, err)
+		return database_sql.CommitTransactionError(t, err)
 	}
 
 	return nil

@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/sfomuseum/go-database"
+	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/whosonfirst/go-whosonfirst-feature/alt"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
 )
@@ -13,7 +13,7 @@ import (
 const CONCORDANCES_TABLE_NAME string = "concordances"
 
 type ConcordancesTable struct {
-	database.Table
+	database_sql.Table
 	FeatureTable
 	name string
 }
@@ -25,7 +25,7 @@ type ConcordancesRow struct {
 	LastModified int64
 }
 
-func NewConcordancesTableWithDatabase(ctx context.Context, db *sql.DB) (database.Table, error) {
+func NewConcordancesTableWithDatabase(ctx context.Context, db *sql.DB) (database_sql.Table, error) {
 
 	t, err := NewConcordancesTable(ctx)
 
@@ -36,13 +36,13 @@ func NewConcordancesTableWithDatabase(ctx context.Context, db *sql.DB) (database
 	err = t.InitializeTable(ctx, db)
 
 	if err != nil {
-		return nil, database.InitializeTableError(t, err)
+		return nil, database_sql.InitializeTableError(t, err)
 	}
 
 	return t, nil
 }
 
-func NewConcordancesTable(ctx context.Context) (database.Table, error) {
+func NewConcordancesTable(ctx context.Context) (database_sql.Table, error) {
 
 	t := ConcordancesTable{
 		name: CONCORDANCES_TABLE_NAME,
@@ -60,7 +60,7 @@ func (t *ConcordancesTable) Schema(db *sql.DB) (string, error) {
 }
 
 func (t *ConcordancesTable) InitializeTable(ctx context.Context, db *sql.DB) error {
-	return database.CreateTableIfNecessary(ctx, db, t)
+	return database_sql.CreateTableIfNecessary(ctx, db, t)
 }
 
 func (t *ConcordancesTable) IndexRecord(ctx context.Context, db *sql.DB, i interface{}) error {
@@ -82,7 +82,7 @@ func (t *ConcordancesTable) IndexFeature(ctx context.Context, db *sql.DB, f []by
 	tx, err := db.Begin()
 
 	if err != nil {
-		return database.BeginTransactionError(t, err)
+		return database_sql.BeginTransactionError(t, err)
 	}
 
 	sql := fmt.Sprintf(`DELETE FROM %s WHERE id = ?`, t.Name())
@@ -90,7 +90,7 @@ func (t *ConcordancesTable) IndexFeature(ctx context.Context, db *sql.DB, f []by
 	stmt, err := tx.Prepare(sql)
 
 	if err != nil {
-		return database.PrepareStatementError(t, err)
+		return database_sql.PrepareStatementError(t, err)
 	}
 
 	defer stmt.Close()
@@ -98,7 +98,7 @@ func (t *ConcordancesTable) IndexFeature(ctx context.Context, db *sql.DB, f []by
 	_, err = stmt.Exec(id)
 
 	if err != nil {
-		return database.ExecuteStatementError(t, err)
+		return database_sql.ExecuteStatementError(t, err)
 	}
 
 	concordances := properties.Concordances(f)
@@ -115,7 +115,7 @@ func (t *ConcordancesTable) IndexFeature(ctx context.Context, db *sql.DB, f []by
 		stmt, err := tx.Prepare(sql)
 
 		if err != nil {
-			return database.PrepareStatementError(t, err)
+			return database_sql.PrepareStatementError(t, err)
 		}
 
 		defer stmt.Close()
@@ -123,14 +123,14 @@ func (t *ConcordancesTable) IndexFeature(ctx context.Context, db *sql.DB, f []by
 		_, err = stmt.Exec(id, other_id, other_source, lastmod)
 
 		if err != nil {
-			return database.ExecuteStatementError(t, err)
+			return database_sql.ExecuteStatementError(t, err)
 		}
 	}
 
 	err = tx.Commit()
 
 	if err != nil {
-		return database.CommitTransactionError(t, err)
+		return database_sql.CommitTransactionError(t, err)
 	}
 
 	return nil
