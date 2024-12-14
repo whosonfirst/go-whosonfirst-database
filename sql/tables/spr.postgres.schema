@@ -21,7 +21,7 @@ CREATE TABLE {{ .Name }} (
 	superseded_by TEXT,
 	supersedes TEXT,
 	belongsto TEXT,
-	is_alt SMALLINT,
+	is_alt BOOLEAN,
 	alt_label TEXT,
 	lastmodified BIGINT
 );
