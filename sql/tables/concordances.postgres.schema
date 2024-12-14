@@ -1,6 +1,6 @@
 CREATE TABLE {{ .Name }} (
 	id BIGINT NOT NULL,
-	other_id BIGINT NOT NULL,
+	other_id TEXT NOT NULL,
 	other_source TEXT,
 	lastmodified BIGINT
 );
