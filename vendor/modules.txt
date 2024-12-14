@@ -19,7 +19,7 @@ github.com/hashicorp/go-multierror
 github.com/paulmach/orb
 github.com/paulmach/orb/encoding/wkt
 github.com/paulmach/orb/geojson
-# github.com/sfomuseum/go-database v0.0.8
+# github.com/sfomuseum/go-database v0.0.9
 ## explicit; go 1.23.3
 github.com/sfomuseum/go-database/sql
 # github.com/sfomuseum/go-edtf v1.1.1
