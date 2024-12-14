@@ -7,5 +7,5 @@ CREATE TABLE {{ .Name }} (
 	lastmodified BIGINT
 );
 
-CREATE UNIQUE INDEX `{{ .Name }}_id_alt` ON {{ .Name }} (`id`, `alt_label`);
-CREATE INDEX `{{ .Name }}_by_source` ON {{ .Name }} (`source`);
+CREATE UNIQUE INDEX {{ .Name }}_id_alt ON {{ .Name }} (id, alt_label);
+CREATE INDEX {{ .Name }}_by_source ON {{ .Name }} (source);
