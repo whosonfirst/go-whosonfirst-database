@@ -1,17 +1,14 @@
-package index
+package create
 
 import (
 	"context"
 	"flag"
 	"fmt"
 	"log/slog"
-	"runtime"
 	"slices"
 
 	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/sfomuseum/go-flags/flagset"
-	"github.com/whosonfirst/go-reader"
-	"github.com/whosonfirst/go-whosonfirst-database/sql/indexer"
 	"github.com/whosonfirst/go-whosonfirst-database/sql/tables"
 )
 
@@ -33,8 +30,6 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 		slog.Debug("Verbose logging enabled")
 	}
 
-	runtime.GOMAXPROCS(procs)
-
 	if spatial_tables {
 		rtree = true
 		geojson = true
@@ -51,11 +46,11 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 		ancestors = true
 		search = true
 
-		to_index_alt := []string{
+		to_create_alt := []string{
 			tables.GEOJSON_TABLE_NAME,
 		}
 
-		for _, table_name := range to_index_alt {
+		for _, table_name := range to_create_alt {
 
 			if !slices.Contains(index_alt, table_name) {
 				index_alt = append(index_alt, table_name)
@@ -66,7 +61,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 
 	logger := slog.Default()
 
-	db, err := database_sql.OpenWithURI(ctx, db_uri)
+	db, err := database_sql.OpenWithURI(ctx, database_uri)
 
 	if err != nil {
 		return err
@@ -81,45 +76,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 		}
 	}()
 
-	db_driver := database_sql.Driver(db)
-
-	switch db_driver {
-	case database_sql.POSTGRES_DRIVER:
-
-		if spatial_tables {
-			rtree = false
-			geometries = true
-		}
-
-		if rtree {
-			return fmt.Errorf("-rtree table not supported by the %s driver", db_driver)
-		}
-
-		if search {
-			return fmt.Errorf("-search table not (yet) supported by the %s driver", db_driver)
-		}
-
-	case database_sql.SQLITE_DRIVER:
-
-		// optimize query performance
-		// https://www.sqlite.org/pragma.html#pragma_optimize
-		if optimize {
-
-			defer func() {
-
-				_, err = db.Exec("PRAGMA optimize")
-
-				if err != nil {
-					logger.Error("Failed to optimize", "error", err)
-					return
-				}
-			}()
-
-		}
-
-	}
-
-	to_index := make([]database_sql.Table, 0)
+	to_create := make([]database_sql.Table, 0)
 
 	if geojson || all {
 
@@ -141,7 +98,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 			return fmt.Errorf("failed to create '%s' table because %s", tables.GEOJSON_TABLE_NAME, err)
 		}
 
-		to_index = append(to_index, gt)
+		to_create = append(to_create, gt)
 	}
 
 	if supersedes || all {
@@ -152,7 +109,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 			return fmt.Errorf("failed to create '%s' table because %s", tables.SUPERSEDES_TABLE_NAME, err)
 		}
 
-		to_index = append(to_index, t)
+		to_create = append(to_create, t)
 	}
 
 	if rtree || all {
@@ -175,7 +132,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 			return fmt.Errorf("failed to create 'rtree' table because %s", err)
 		}
 
-		to_index = append(to_index, gt)
+		to_create = append(to_create, gt)
 	}
 
 	if properties || all {
@@ -198,7 +155,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 			return fmt.Errorf("failed to create 'properties' table because %s", err)
 		}
 
-		to_index = append(to_index, gt)
+		to_create = append(to_create, gt)
 	}
 
 	if spr || all {
@@ -221,7 +178,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 			return fmt.Errorf("failed to create '%s' table because %s", tables.SPR_TABLE_NAME, err)
 		}
 
-		to_index = append(to_index, st)
+		to_create = append(to_create, st)
 	}
 
 	if spelunker || all {
@@ -244,7 +201,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 			return fmt.Errorf("failed to create '%s' table because %s", tables.SPELUNKER_TABLE_NAME, err)
 		}
 
-		to_index = append(to_index, st)
+		to_create = append(to_create, st)
 	}
 
 	if names || all {
@@ -255,7 +212,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 			return fmt.Errorf("failed to create '%s' table because %s", tables.NAMES_TABLE_NAME, err)
 		}
 
-		to_index = append(to_index, nm)
+		to_create = append(to_create, nm)
 	}
 
 	if ancestors || all {
@@ -266,7 +223,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 			return fmt.Errorf("failed to create '%s' table because %s", tables.ANCESTORS_TABLE_NAME, err)
 		}
 
-		to_index = append(to_index, an)
+		to_create = append(to_create, an)
 	}
 
 	if concordances || all {
@@ -277,7 +234,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 			return fmt.Errorf("failed to create '%s' table because %s", tables.CONCORDANCES_TABLE_NAME, err)
 		}
 
-		to_index = append(to_index, cn)
+		to_create = append(to_create, cn)
 	}
 
 	// see the way we don't check all here - that's so people who don't have
@@ -303,7 +260,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 			return fmt.Errorf("failed to create '%s' table because %v", tables.CONCORDANCES_TABLE_NAME, err)
 		}
 
-		to_index = append(to_index, gm)
+		to_create = append(to_create, gm)
 	}
 
 	// see the way we don't check all here either - that's because this table can be
@@ -320,52 +277,17 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 			return fmt.Errorf("failed to create 'search' table because %v", err)
 		}
 
-		to_index = append(to_index, st)
+		to_create = append(to_create, st)
 	}
 
-	if len(to_index) == 0 {
+	if len(to_create) == 0 {
 		return fmt.Errorf("You forgot to specify which (any) tables to index")
 	}
 
-	record_opts := &indexer.LoadRecordFuncOptions{
-		StrictAltFiles: strict_alt_files,
-	}
+	db_opts := database_sql.DefaultConfigureDatabaseOptions()
+	db_opts.CreateTablesIfNecessary = true
+	db_opts.Tables = to_create
 
-	record_func := indexer.LoadRecordFunc(record_opts)
+	return database_sql.ConfigureDatabase(ctx, db, db_opts)
 
-	idx_opts := &indexer.IndexerOptions{
-		DB:             db,
-		Tables:         to_index,
-		LoadRecordFunc: record_func,
-	}
-
-	if index_relations {
-
-		r, err := reader.NewReader(ctx, relations_uri)
-
-		if err != nil {
-			return fmt.Errorf("Failed to load reader (%s), %v", relations_uri, err)
-		}
-
-		belongsto_func := indexer.IndexRelationsFunc(r)
-		idx_opts.PostIndexFunc = belongsto_func
-	}
-
-	idx, err := indexer.NewIndexer(idx_opts)
-
-	if err != nil {
-		return fmt.Errorf("failed to create sqlite indexer because %v", err)
-	}
-
-	idx.Timings = timings
-
-	uris := fs.Args()
-
-	err = idx.IndexURIs(ctx, iterator_uri, uris...)
-
-	if err != nil {
-		return fmt.Errorf("Failed to index paths in %s mode because: %s", iterator_uri, err)
-	}
-
-	return nil
 }

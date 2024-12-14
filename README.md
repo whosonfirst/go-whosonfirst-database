@@ -18,6 +18,10 @@ However, it does NOT load any specific `database/sql` drivers by default. This i
 
 This package simply provides common code used to index Who's On First documents regardles of the underlying database engine.
 
+### Postgres
+
+* https://github.com/whosonfirst/go-whosonfirst-database-postgres
+
 ### SQLite
 
 * https://github.com/whosonfirst/go-whosonfirst-database-sqlite
@@ -26,3 +30,4 @@ This package simply provides common code used to index Who's On First documents 
 
 * https://github.com/sfomuseum/go-database/
 * https://github.com/whosonfirst/go-whosonfirst-database-sqlite
+* https://github.com/whosonfirst/go-whosonfirst-database-postgres
