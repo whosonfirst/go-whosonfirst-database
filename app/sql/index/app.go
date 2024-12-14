@@ -81,8 +81,25 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 		}
 	}()
 
-	switch database_sql.Driver(db) {
-	case "sqlite":
+	db_driver := database_sql.Driver(db)
+
+	switch db_driver {
+	case database_sql.POSTGRES_DRIVER:
+
+		if spatial_tables {
+			rtree = false
+			geometries = true
+		}
+
+		if rtree {
+			return fmt.Errorf("-rtree table not supported by the %s driver", db_driver)
+		}
+
+		if search {
+			return fmt.Errorf("-search table not (yet) supported by the %s driver", db_driver)
+		}
+
+	case database_sql.SQLITE_DRIVER:
 
 		// optimize query performance
 		// https://www.sqlite.org/pragma.html#pragma_optimize
