@@ -42,7 +42,7 @@ func DefaultFlagSet() *flag.FlagSet {
 	fs := flagset.NewFlagSet("index")
 
 	fs.StringVar(&database_uri, "database-uri", "", "...")
-	
+
 	fs.BoolVar(&all, "all", false, "Index all tables (except the 'search' and 'geometries' tables which you need to specify explicitly)")
 	fs.BoolVar(&ancestors, "ancestors", false, "Index the 'ancestors' tables")
 	fs.BoolVar(&concordances, "concordances", false, "Index the 'concordances' tables")
