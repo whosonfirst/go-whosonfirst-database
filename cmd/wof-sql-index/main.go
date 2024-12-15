@@ -6,7 +6,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/whosonfirst/go-whosonfirst-database/app/sql/index"
+	"github.com/whosonfirst/go-whosonfirst-database/app/sql/tables/index"
 )
 
 func main() {

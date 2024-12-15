@@ -7,13 +7,13 @@ import (
 	"strconv"
 	"strings"
 
+	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/sfomuseum/go-edtf"
 	"github.com/sfomuseum/go-edtf/parser"
 	"github.com/whosonfirst/go-whosonfirst-flags"
 	"github.com/whosonfirst/go-whosonfirst-flags/existential"
 	wof_spr "github.com/whosonfirst/go-whosonfirst-spr/v2"
 	"github.com/whosonfirst/go-whosonfirst-uri"
-	database_sql "github.com/sfomuseum/go-database/sql"
 )
 
 // Results is a struct that implements the `whosonfirst/go-whosonfirst-spr.StandardPlacesResults`
@@ -21,7 +21,7 @@ import (
 type Results struct {
 	wof_spr.StandardPlacesResults `json:",omitempty"`
 	// Places are the list of `StandardPlacesResults.StandardPlacesResults` instances contained by the struct.
-	Places                        []wof_spr.StandardPlacesResult `json:"places"`
+	Places []wof_spr.StandardPlacesResult `json:"places"`
 }
 
 // Results returns a list of `StandardPlacesResults.StandardPlacesResults` instances.
@@ -184,20 +184,43 @@ func RetrieveSPR(ctx context.Context, spr_db *sql.DB, spr_table database_sql.Tab
 	// supersedes and superseding need to be added here pending
 	// https://github.com/whosonfirst/go-whosonfirst-sqlite-features/issues/14
 
-	spr_q := fmt.Sprintf(`SELECT 
-		id, parent_id, name, placetype,
-		inception, cessation,
-		country, repo,
-		latitude, longitude,
-		min_latitude, min_longitude,
-		max_latitude, max_longitude,
-		is_current, is_deprecated, is_ceased,is_superseded, is_superseding,
-		supersedes, superseded_by, belongsto,
-		is_alt, alt_label,
-		lastmodified
-	FROM %s WHERE id = ? AND alt_label = ?`, spr_table.Name())
+	db_driver := database_sql.Driver(spr_db)
 
-	row := spr_db.QueryRowContext(ctx, spr_q, args...)
+	var q string
+
+	switch db_driver {
+	case database_sql.POSTGRES_DRIVER:
+
+		q = fmt.Sprintf(`SELECT 
+			id, parent_id, name, placetype,
+			inception, cessation,
+			country, repo,
+			latitude, longitude,
+			min_latitude, min_longitude,
+			max_latitude, max_longitude,
+			is_current, is_deprecated, is_ceased,is_superseded, is_superseding,
+			supersedes, superseded_by, belongsto,
+			is_alt, alt_label,
+			lastmodified
+		FROM %s WHERE id = $1 AND alt_label = $2`, spr_table.Name())
+
+	default:
+
+		q = fmt.Sprintf(`SELECT 
+			id, parent_id, name, placetype,
+			inception, cessation,
+			country, repo,
+			latitude, longitude,
+			min_latitude, min_longitude,
+			max_latitude, max_longitude,
+			is_current, is_deprecated, is_ceased,is_superseded, is_superseding,
+			supersedes, superseded_by, belongsto,
+			is_alt, alt_label,
+			lastmodified
+		FROM %s WHERE id = ? AND alt_label = ?`, spr_table.Name())
+	}
+
+	row := spr_db.QueryRowContext(ctx, q, args...)
 	return RetrieveSPRWithRow(ctx, row)
 }
 
@@ -231,11 +254,12 @@ func retrieveSPRWithScanner(ctx context.Context, scanner interface{}) (wof_spr.S
 	var parent_id string
 	var name string
 	var placetype string
-	var country string
-	var repo string
 
 	var inception string
 	var cessation string
+
+	var country string
+	var repo string
 
 	var latitude float64
 	var longitude float64
@@ -257,7 +281,7 @@ func retrieveSPRWithScanner(ctx context.Context, scanner interface{}) (wof_spr.S
 	var str_superseded_by string
 	var str_belongs_to string
 
-	var is_alt int64
+	var is_alt bool
 	var alt_label string
 
 	var lastmodified int64
