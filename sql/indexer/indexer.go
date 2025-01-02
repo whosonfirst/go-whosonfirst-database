@@ -71,8 +71,11 @@ func NewIndexer(opts *IndexerOptions) (*Indexer, error) {
 		record, err := record_func(ctx, path, r, args...)
 
 		if err != nil {
-			logger.Error("Failed to load record", "error", err)
-			return err
+			// logger.Error("Failed to load record", "error", err)
+			// return err
+
+			logger.Warn("Failed to load record", "error", err)
+			return nil			
 		}
 
 		if record == nil {
@@ -94,8 +97,11 @@ func NewIndexer(opts *IndexerOptions) (*Indexer, error) {
 			err = t.IndexRecord(ctx, db, record)
 
 			if err != nil {
-				logger.Error("Failed to index feature", "error", err)
-				return err
+				// logger.Error("Failed to index feature", "error", err)
+				// return err
+
+				logger.Warn("Failed to index feature", "error", err)
+				return err				
 			}
 
 			t2 := time.Since(t1)
