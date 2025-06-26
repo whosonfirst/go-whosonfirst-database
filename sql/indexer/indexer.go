@@ -11,8 +11,7 @@ import (
 	"time"
 
 	database_sql "github.com/sfomuseum/go-database/sql"
-	"github.com/whosonfirst/go-whosonfirst-iterate/v2/emitter"
-	"github.com/whosonfirst/go-whosonfirst-iterate/v2/iterator"
+	"github.com/whosonfirst/go-whosonfirst-iterate/v3"
 )
 
 // IndexerPostIndexFunc is a custom function to invoke after a record has been indexed.
@@ -55,80 +54,10 @@ func NewIndexer(opts *IndexerOptions) (*Indexer, error) {
 	table_timings := make(map[string]time.Duration)
 	mu := new(sync.RWMutex)
 
-	iterator_cb := func(ctx context.Context, path string, r io.ReadSeeker, args ...interface{}) error {
-
-		logger := slog.Default()
-		logger = logger.With("path", path)
-
-		/*
-			t1 := time.Now()
-
-			defer func() {
-				logger.Debug("Time to index record", "time", time.Since(t1))
-			}()
-		*/
-
-		record, err := record_func(ctx, path, r, args...)
-
-		if err != nil {
-			logger.Error("Failed to load record", "error", err)
-			return err
-		}
-
-		if record == nil {
-			logger.Debug("Record func returned nil")
-			return nil
-		}
-
-		mu.Lock()
-		defer mu.Unlock()
-
-		for _, t := range tables {
-
-			logger := slog.Default()
-			logger = logger.With("path", path)
-			logger = logger.With("table", t.Name())
-
-			t1 := time.Now()
-
-			err = t.IndexRecord(ctx, db, record)
-
-			if err != nil {
-				logger.Error("Failed to index feature", "error", err)
-				return err
-			}
-
-			t2 := time.Since(t1)
-
-			n := t.Name()
-
-			_, ok := table_timings[n]
-
-			if ok {
-				table_timings[n] += t2
-			} else {
-				table_timings[n] = t2
-			}
-		}
-
-		if opts.PostIndexFunc != nil {
-
-			err := opts.PostIndexFunc(ctx, db, tables, record)
-
-			if err != nil {
-				logger.Error("Post-index function failed", "error", err)
-				return err
-			}
-		}
-
-		return nil
-	}
-
 	i := Indexer{
-		iterator_callback: iterator_cb,
-		table_timings:     table_timings,
-		mu:                mu,
-		Timings:           false,
+		table_timings: table_timings,
+		mu:            mu,
+		Timings:       false,
 	}
 
 	return &i, nil
@@ -137,7 +66,7 @@ func NewIndexer(opts *IndexerOptions) (*Indexer, error) {
 // IndexURIs will index records returned by the `whosonfirst/go-whosonfirst-iterate` instance for 'uris',
 func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...string) error {
 
-	iter, err := iterator.NewIterator(ctx, iterator_uri, idx.iterator_callback)
+	iter, err := iterator.NewIterator(ctx, iterator_uri)
 
 	if err != nil {
 		return fmt.Errorf("Failed to create new iterator, %w", err)
@@ -186,7 +115,82 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 		}()
 	}
 
-	err = iter.IterateURIs(ctx, uris...)
+	for rec, err := range iter.Iterate(ctx, uris...) {
+
+		if err != nil {
+			return err
+		}
+
+		logger := slog.Default()
+		logger = logger.With("path", path)
+
+		/*
+			t1 := time.Now()
+
+			defer func() {
+				logger.Debug("Time to index record", "time", time.Since(t1))
+			}()
+		*/
+
+		defer rec.Body.Close()
+
+		record, err := record_func(ctx, rec.Path, rec.Body, args...)
+
+		if err != nil {
+			logger.Error("Failed to load record", "error", err)
+			return err
+		}
+
+		if record == nil {
+			logger.Debug("Record func returned nil")
+			return nil
+		}
+
+		mu.Lock()
+		defer mu.Unlock()
+
+		for _, t := range tables {
+
+			logger := slog.Default()
+			logger = logger.With("path", rec.Path)
+			logger = logger.With("table", t.Name())
+
+			t1 := time.Now()
+
+			err = t.IndexRecord(ctx, db, record)
+
+			if err != nil {
+				logger.Error("Failed to index feature", "error", err)
+				return err
+			}
+
+			t2 := time.Since(t1)
+
+			n := t.Name()
+
+			_, ok := table_timings[n]
+
+			if ok {
+				table_timings[n] += t2
+			} else {
+				table_timings[n] = t2
+			}
+		}
+
+		if opts.PostIndexFunc != nil {
+
+			err := opts.PostIndexFunc(ctx, db, tables, record)
+
+			if err != nil {
+				logger.Error("Post-index function failed", "error", err)
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	err = iter.Close()
 
 	if err != nil {
 		return err
