@@ -118,14 +118,6 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 		logger := slog.Default()
 		logger = logger.With("path", rec.Path)
 
-		/*
-			t1 := time.Now()
-
-			defer func() {
-				logger.Debug("Time to index record", "time", time.Since(t1))
-			}()
-		*/
-
 		defer rec.Body.Close()
 
 		record, err := idx.options.LoadRecordFunc(ctx, rec.Path, rec.Body)
@@ -137,11 +129,10 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 
 		if record == nil {
 			logger.Debug("Record func returned nil")
-			return nil
+			continue
 		}
 
 		idx.mu.Lock()
-		defer idx.mu.Unlock()
 
 		for _, t := range idx.options.Tables {
 
@@ -154,6 +145,7 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 			err = t.IndexRecord(ctx, idx.options.DB, record)
 
 			if err != nil {
+				idx.mu.Unlock()
 				logger.Error("Failed to index feature", "error", err)
 				return err
 			}
@@ -176,12 +168,14 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 			err := idx.options.PostIndexFunc(ctx, idx.options.DB, idx.options.Tables, record)
 
 			if err != nil {
+				idx.mu.Unlock()
 				logger.Error("Post-index function failed", "error", err)
 				return err
 			}
 		}
 
-		return nil
+		logger.Info("Indexed database record")
+		idx.mu.Unlock()
 	}
 
 	err = iter.Close()
