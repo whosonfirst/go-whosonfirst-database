@@ -7,7 +7,6 @@ import (
 	"io"
 	"log/slog"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	database_sql "github.com/sfomuseum/go-database/sql"
@@ -23,10 +22,9 @@ type IndexerLoadRecordFunc func(context.Context, string, io.ReadSeeker, ...inter
 
 // Indexer is a struct that provides methods for indexing records in one or more SQLite database_sql.tables
 type Indexer struct {
-	// iterator_callback is the `whosonfirst/go-whosonfirst-iterate/v2` callback function used by the `IndexPaths` method
-	iterator_callback emitter.EmitterCallbackFunc
-	table_timings     map[string]time.Duration
-	mu                *sync.RWMutex
+	table_timings map[string]time.Duration
+	mu            *sync.RWMutex
+	options       *IndexerOptions
 	// Timings is a boolean flag indicating whether timings (time to index records) should be recorded)
 	Timings bool
 }
@@ -47,16 +45,13 @@ type IndexerOptions struct {
 // NewSQLiteInder returns a `Indexer` configured with 'opts'.
 func NewIndexer(opts *IndexerOptions) (*Indexer, error) {
 
-	db := opts.DB
-	tables := opts.Tables
-	record_func := opts.LoadRecordFunc
-
 	table_timings := make(map[string]time.Duration)
 	mu := new(sync.RWMutex)
 
 	i := Indexer{
 		table_timings: table_timings,
 		mu:            mu,
+		options:       opts,
 		Timings:       false,
 	}
 
@@ -66,7 +61,7 @@ func NewIndexer(opts *IndexerOptions) (*Indexer, error) {
 // IndexURIs will index records returned by the `whosonfirst/go-whosonfirst-iterate` instance for 'uris',
 func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...string) error {
 
-	iter, err := iterator.NewIterator(ctx, iterator_uri)
+	iter, err := iterate.NewIterator(ctx, iterator_uri)
 
 	if err != nil {
 		return fmt.Errorf("Failed to create new iterator, %w", err)
@@ -82,8 +77,7 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 	show_timings := func() {
 
 		t2 := time.Since(t1)
-
-		i := atomic.LoadInt64(&iter.Seen)
+		i := iter.Seen()
 
 		idx.mu.RLock()
 		defer idx.mu.RUnlock()
@@ -122,7 +116,7 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 		}
 
 		logger := slog.Default()
-		logger = logger.With("path", path)
+		logger = logger.With("path", rec.Path)
 
 		/*
 			t1 := time.Now()
@@ -134,7 +128,7 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 
 		defer rec.Body.Close()
 
-		record, err := record_func(ctx, rec.Path, rec.Body, args...)
+		record, err := idx.options.LoadRecordFunc(ctx, rec.Path, rec.Body)
 
 		if err != nil {
 			logger.Error("Failed to load record", "error", err)
@@ -146,10 +140,10 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 			return nil
 		}
 
-		mu.Lock()
-		defer mu.Unlock()
+		idx.mu.Lock()
+		defer idx.mu.Unlock()
 
-		for _, t := range tables {
+		for _, t := range idx.options.Tables {
 
 			logger := slog.Default()
 			logger = logger.With("path", rec.Path)
@@ -157,7 +151,7 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 
 			t1 := time.Now()
 
-			err = t.IndexRecord(ctx, db, record)
+			err = t.IndexRecord(ctx, idx.options.DB, record)
 
 			if err != nil {
 				logger.Error("Failed to index feature", "error", err)
@@ -168,18 +162,18 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 
 			n := t.Name()
 
-			_, ok := table_timings[n]
+			_, ok := idx.table_timings[n]
 
 			if ok {
-				table_timings[n] += t2
+				idx.table_timings[n] += t2
 			} else {
-				table_timings[n] = t2
+				idx.table_timings[n] = t2
 			}
 		}
 
-		if opts.PostIndexFunc != nil {
+		if idx.options.PostIndexFunc != nil {
 
-			err := opts.PostIndexFunc(ctx, db, tables, record)
+			err := idx.options.PostIndexFunc(ctx, idx.options.DB, idx.options.Tables, record)
 
 			if err != nil {
 				logger.Error("Post-index function failed", "error", err)
