@@ -16,8 +16,7 @@ import (
 // IndexerPostIndexFunc is a custom function to invoke after a record has been indexed.
 type IndexerPostIndexFunc func(context.Context, *sql.DB, []database_sql.Table, interface{}) error
 
-// IndexerLoadRecordFunc is a custom `whosonfirst/go-whosonfirst-iterate/v2` callback function to be invoked
-// for each record processed by the `IndexURIs` method.
+// IndexerLoadRecordFunc is a custom function to be invoked for each record processed by the `IndexURIs` method.
 type IndexerLoadRecordFunc func(context.Context, string, io.ReadSeeker, ...interface{}) (interface{}, error)
 
 // Indexer is a struct that provides methods for indexing records in one or more SQLite database_sql.tables
@@ -120,62 +119,12 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 
 		defer rec.Body.Close()
 
-		record, err := idx.options.LoadRecordFunc(ctx, rec.Path, rec.Body)
+		err = idx.IndexIteratorRecord(ctx, rec)
 
 		if err != nil {
-			logger.Error("Failed to load record", "error", err)
+			logger.Error("Failed to index record", "error", err)
 			return err
 		}
-
-		if record == nil {
-			logger.Debug("Record func returned nil")
-			continue
-		}
-
-		idx.mu.Lock()
-
-		for _, t := range idx.options.Tables {
-
-			logger := slog.Default()
-			logger = logger.With("path", rec.Path)
-			logger = logger.With("table", t.Name())
-
-			t1 := time.Now()
-
-			err = t.IndexRecord(ctx, idx.options.DB, record)
-
-			if err != nil {
-				idx.mu.Unlock()
-				logger.Error("Failed to index feature", "error", err)
-				return err
-			}
-
-			t2 := time.Since(t1)
-
-			n := t.Name()
-
-			_, ok := idx.table_timings[n]
-
-			if ok {
-				idx.table_timings[n] += t2
-			} else {
-				idx.table_timings[n] = t2
-			}
-		}
-
-		if idx.options.PostIndexFunc != nil {
-
-			err := idx.options.PostIndexFunc(ctx, idx.options.DB, idx.options.Tables, record)
-
-			if err != nil {
-				idx.mu.Unlock()
-				logger.Error("Post-index function failed", "error", err)
-				return err
-			}
-		}
-
-		logger.Info("Indexed database record")
-		idx.mu.Unlock()
 	}
 
 	err = iter.Close()
@@ -184,5 +133,64 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 		return err
 	}
 
+	return nil
+}
+
+// IndexIterateRecord will index 'rec' in the underlying database.
+func (idx *Indexer) IndexIteratorRecord(ctx context.Context, rec *iterate.Record) error {
+
+	logger := slog.Default()
+	logger = logger.With("path", rec.Path)
+
+	record, err := idx.options.LoadRecordFunc(ctx, rec.Path, rec.Body)
+
+	if err != nil {
+		return err
+	}
+
+	if record == nil {
+		return nil
+	}
+
+	idx.mu.Lock()
+	idx.mu.Unlock()
+
+	for _, t := range idx.options.Tables {
+
+		logger := slog.Default()
+		logger = logger.With("path", rec.Path)
+		logger = logger.With("table", t.Name())
+
+		t1 := time.Now()
+
+		err := t.IndexRecord(ctx, idx.options.DB, record)
+
+		if err != nil {
+			return fmt.Errorf("Failed to index %s table, %w", t.Name(), err)
+		}
+
+		t2 := time.Since(t1)
+
+		n := t.Name()
+
+		_, ok := idx.table_timings[n]
+
+		if ok {
+			idx.table_timings[n] += t2
+		} else {
+			idx.table_timings[n] = t2
+		}
+	}
+
+	if idx.options.PostIndexFunc != nil {
+
+		err := idx.options.PostIndexFunc(ctx, idx.options.DB, idx.options.Tables, record)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	logger.Info("Indexed database record")
 	return nil
 }
