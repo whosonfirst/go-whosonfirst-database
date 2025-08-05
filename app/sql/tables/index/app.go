@@ -10,7 +10,7 @@ import (
 
 	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/sfomuseum/go-flags/flagset"
-	"github.com/whosonfirst/go-reader"
+	"github.com/whosonfirst/go-reader/v2"
 	"github.com/whosonfirst/go-whosonfirst-database/sql/indexer"
 	"github.com/whosonfirst/go-whosonfirst-database/sql/tables"
 )

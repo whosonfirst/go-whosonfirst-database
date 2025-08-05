@@ -10,7 +10,7 @@ import (
 
 	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/tidwall/gjson"
-	"github.com/whosonfirst/go-reader"
+	"github.com/whosonfirst/go-reader/v2"
 	wof_tables "github.com/whosonfirst/go-whosonfirst-database/sql/tables"
 	"github.com/whosonfirst/go-whosonfirst-feature/geometry"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
