@@ -8,7 +8,7 @@ require (
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/paulmach/orb v0.11.1
-	github.com/sfomuseum/go-database v0.0.14
+	github.com/sfomuseum/go-database v0.0.15
 	github.com/sfomuseum/go-edtf v1.2.1
 	github.com/sfomuseum/go-flags v0.11.0
 	github.com/tidwall/gjson v1.18.0

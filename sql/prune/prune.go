@@ -5,13 +5,13 @@ import (
 	"database/sql"
 	"fmt"
 
-	sfom_sql "github.com/sfomuseum/go-database/sql"
+	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/whosonfirst/go-whosonfirst-iterate/v3"
 	"github.com/whosonfirst/go-whosonfirst-uri"
 )
 
 // PruneTables will remove all the records in 'to_prune'
-func PruneTables(ctx context.Context, db *sql.DB, to_prune ...sfom_sql.Table) error {
+func PruneTables(ctx context.Context, db *sql.DB, to_prune ...database_sql.Table) error {
 
 	tx, err := db.Begin()
 
@@ -45,7 +45,7 @@ func PruneTables(ctx context.Context, db *sql.DB, to_prune ...sfom_sql.Table) er
 }
 
 // PruneTablesWithIterator will remove records emitted by an iterator (defined by 'iterator_uri' and 'iterator_source') from 'to_prune'.
-func PruneTablesWithIterator(ctx context.Context, iterator_uri string, iterator_source string, db *sql.DB, to_prune ...sfom_sql.Table) error {
+func PruneTablesWithIterator(ctx context.Context, iterator_uri string, iterator_source string, db *sql.DB, to_prune ...database_sql.Table) error {
 
 	iter, err := iterate.NewIterator(ctx, iterator_uri)
 

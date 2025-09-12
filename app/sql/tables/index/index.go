@@ -9,7 +9,7 @@ import (
 	"slices"
 
 	_ "github.com/whosonfirst/go-whosonfirst-database/sql"
-	
+
 	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/sfomuseum/go-flags/flagset"
 	"github.com/whosonfirst/go-reader/v2"
@@ -88,19 +88,6 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 	switch db_driver {
 	case database_sql.POSTGRES_DRIVER:
 
-		if spatial_tables {
-			rtree = false
-			geometries = true
-		}
-
-		if rtree {
-			return fmt.Errorf("-rtree table not supported by the %s driver", db_driver)
-		}
-
-		if search {
-			return fmt.Errorf("-search table not (yet) supported by the %s driver", db_driver)
-		}
-
 	case database_sql.SQLITE_DRIVER:
 
 		// optimize query performance
@@ -121,208 +108,28 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 
 	}
 
-	to_index := make([]database_sql.Table, 0)
-
-	if geojson || all {
-
-		geojson_opts, err := tables.DefaultGeoJSONTableOptions()
-
-		if err != nil {
-			return fmt.Errorf("failed to create '%s' table options because %s", tables.GEOJSON_TABLE_NAME, err)
-		}
-
-		// alt_files is deprecated (20240229/straup)
-
-		if alt_files || slices.Contains(index_alt, tables.GEOJSON_TABLE_NAME) || slices.Contains(index_alt, index_alt_all) {
-			geojson_opts.IndexAltFiles = true
-		}
-
-		gt, err := tables.NewGeoJSONTableWithDatabaseAndOptions(ctx, db, geojson_opts)
-
-		if err != nil {
-			return fmt.Errorf("failed to create '%s' table because %s", tables.GEOJSON_TABLE_NAME, err)
-		}
-
-		to_index = append(to_index, gt)
+	init_opts := &tables.InitTablesOptions{
+		RTree:           rtree,
+		GeoJSON:         geojson,
+		Properties:      properties,
+		SPR:             spr,
+		Spelunker:       spelunker,
+		Concordances:    concordances,
+		Ancestors:       ancestors,
+		Search:          search,
+		Names:           names,
+		Supersedes:      supersedes,
+		SpatialTables:   spatial_tables,
+		SpelunkerTables: spelunker_tables,
+		All:             all,
+		IndexAlt:        index_alt,
+		StrictAltFiles:  strict_alt_files,
 	}
 
-	if supersedes || all {
+	to_index, err := tables.InitTables(ctx, db, init_opts)
 
-		t, err := tables.NewSupersedesTableWithDatabase(ctx, db)
-
-		if err != nil {
-			return fmt.Errorf("failed to create '%s' table because %s", tables.SUPERSEDES_TABLE_NAME, err)
-		}
-
-		to_index = append(to_index, t)
-	}
-
-	if rtree || all {
-
-		rtree_opts, err := tables.DefaultRTreeTableOptions()
-
-		if err != nil {
-			return fmt.Errorf("failed to create 'rtree' table options because %s", err)
-		}
-
-		// alt_files is deprecated (20240229/straup)
-
-		if alt_files || slices.Contains(index_alt, tables.RTREE_TABLE_NAME) || slices.Contains(index_alt, index_alt_all) {
-			rtree_opts.IndexAltFiles = true
-		}
-
-		gt, err := tables.NewRTreeTableWithDatabaseAndOptions(ctx, db, rtree_opts)
-
-		if err != nil {
-			return fmt.Errorf("failed to create 'rtree' table because %s", err)
-		}
-
-		to_index = append(to_index, gt)
-	}
-
-	if properties || all {
-
-		properties_opts, err := tables.DefaultPropertiesTableOptions()
-
-		if err != nil {
-			return fmt.Errorf("failed to create 'properties' table options because %s", err)
-		}
-
-		// alt_files is deprecated (20240229/straup)
-
-		if alt_files || slices.Contains(index_alt, tables.PROPERTIES_TABLE_NAME) || slices.Contains(index_alt, index_alt_all) {
-			properties_opts.IndexAltFiles = true
-		}
-
-		gt, err := tables.NewPropertiesTableWithDatabaseAndOptions(ctx, db, properties_opts)
-
-		if err != nil {
-			return fmt.Errorf("failed to create 'properties' table because %s", err)
-		}
-
-		to_index = append(to_index, gt)
-	}
-
-	if spr || all {
-
-		spr_opts, err := tables.DefaultSPRTableOptions()
-
-		if err != nil {
-			return fmt.Errorf("Failed to create '%s' table options because %v", tables.SPR_TABLE_NAME, err)
-		}
-
-		// alt_files is deprecated (20240229/straup)
-
-		if alt_files || slices.Contains(index_alt, tables.SPR_TABLE_NAME) || slices.Contains(index_alt, index_alt_all) {
-			spr_opts.IndexAltFiles = true
-		}
-
-		st, err := tables.NewSPRTableWithDatabaseAndOptions(ctx, db, spr_opts)
-
-		if err != nil {
-			return fmt.Errorf("failed to create '%s' table because %s", tables.SPR_TABLE_NAME, err)
-		}
-
-		to_index = append(to_index, st)
-	}
-
-	if spelunker || all {
-
-		spelunker_opts, err := tables.DefaultSpelunkerTableOptions()
-
-		if err != nil {
-			return fmt.Errorf("Failed to create '%s' table options because %v", tables.SPELUNKER_TABLE_NAME, err)
-		}
-
-		// alt_files is deprecated (20240229/straup)
-
-		if alt_files || slices.Contains(index_alt, tables.SPELUNKER_TABLE_NAME) || slices.Contains(index_alt, index_alt_all) {
-			spelunker_opts.IndexAltFiles = true
-		}
-
-		st, err := tables.NewSpelunkerTableWithDatabaseAndOptions(ctx, db, spelunker_opts)
-
-		if err != nil {
-			return fmt.Errorf("failed to create '%s' table because %s", tables.SPELUNKER_TABLE_NAME, err)
-		}
-
-		to_index = append(to_index, st)
-	}
-
-	if names || all {
-
-		nm, err := tables.NewNamesTableWithDatabase(ctx, db)
-
-		if err != nil {
-			return fmt.Errorf("failed to create '%s' table because %s", tables.NAMES_TABLE_NAME, err)
-		}
-
-		to_index = append(to_index, nm)
-	}
-
-	if ancestors || all {
-
-		an, err := tables.NewAncestorsTableWithDatabase(ctx, db)
-
-		if err != nil {
-			return fmt.Errorf("failed to create '%s' table because %s", tables.ANCESTORS_TABLE_NAME, err)
-		}
-
-		to_index = append(to_index, an)
-	}
-
-	if concordances || all {
-
-		cn, err := tables.NewConcordancesTableWithDatabase(ctx, db)
-
-		if err != nil {
-			return fmt.Errorf("failed to create '%s' table because %s", tables.CONCORDANCES_TABLE_NAME, err)
-		}
-
-		to_index = append(to_index, cn)
-	}
-
-	// see the way we don't check all here - that's so people who don't have
-	// spatialite installed can still use all (20180122/thisisaaronland)
-
-	if geometries {
-
-		geometries_opts, err := tables.DefaultGeometriesTableOptions()
-
-		if err != nil {
-			return fmt.Errorf("failed to create '%s' table options because %v", tables.GEOMETRIES_TABLE_NAME, err)
-		}
-
-		// alt_files is deprecated (20240229/straup)
-
-		if alt_files || slices.Contains(index_alt, tables.CONCORDANCES_TABLE_NAME) || slices.Contains(index_alt, index_alt_all) {
-			geometries_opts.IndexAltFiles = true
-		}
-
-		gm, err := tables.NewGeometriesTableWithDatabaseAndOptions(ctx, db, geometries_opts)
-
-		if err != nil {
-			return fmt.Errorf("failed to create '%s' table because %v", tables.CONCORDANCES_TABLE_NAME, err)
-		}
-
-		to_index = append(to_index, gm)
-	}
-
-	// see the way we don't check all here either - that's because this table can be
-	// brutally slow to index and should probably really just be a separate database
-	// anyway... (20180214/thisisaaronland)
-
-	if search {
-
-		// ALT FILES...
-
-		st, err := tables.NewSearchTableWithDatabase(ctx, db)
-
-		if err != nil {
-			return fmt.Errorf("failed to create 'search' table because %v", err)
-		}
-
-		to_index = append(to_index, st)
+	if err != nil {
+		return err
 	}
 
 	if len(to_index) == 0 {

@@ -49,8 +49,8 @@ github.com/paulmach/protoscan v0.2.1/go.mod h1:SpcSwydNLrxUGSDvXvO0P7g7AuhJ7lcKf
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/sfomuseum/go-database v0.0.14 h1:UjNRw1RfgVWFZF0PF5qqITHZeTRLGN+f2RYkirNFTPg=
-github.com/sfomuseum/go-database v0.0.14/go.mod h1:c1oZwb0M0aYSI48SgE8b5iIrGrLFA8eJFk46E5g4JOM=
+github.com/sfomuseum/go-database v0.0.15 h1:lTmCMgc/q6GqkcQ7XYxjggMtK+1E1zCXJhY7jIBLrX0=
+github.com/sfomuseum/go-database v0.0.15/go.mod h1:rc7eTssSpED7hxJftyhSDLGD8007Nxhzwj8/KHa5LyQ=
 github.com/sfomuseum/go-edtf v1.2.1 h1:vyKvoNa4p6mmwp9AbbEdJoj+A5YK4G7S1QgmSNpXh7s=
 github.com/sfomuseum/go-edtf v1.2.1/go.mod h1:1rP0EJZ/84j3HO80vGcnG2T9MFBDAFyTNtjrr8cv3T4=
 github.com/sfomuseum/go-flags v0.11.0 h1:HmMm5DgLxgz8iaNsvJ79dyRXjuAyX/fruqkBeHmopL0=

@@ -67,7 +67,7 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 	}
 
 	defer iter.Close()
-	
+
 	done_ch := make(chan bool)
 	t1 := time.Now()
 
