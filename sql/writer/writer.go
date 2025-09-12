@@ -1,5 +1,14 @@
 package writer
 
+/*
+
+$> urlescape 'wof-sql://sqlite3?dsn=test3.db&spatial-tables=true'
+wof-sql%3A%2F%2Fsqlite3%3Fdsn%3Dtest3.db%26spatial-tables%3Dtrue
+
+$> ./bin/wof-sql-iterwriter -writer-uri 'constant://?val=wof-sql%3A%2F%2Fsqlite3%3Fdsn%3Dtest3.db%26spatial-tables%3Dtrue' /usr/local/data/sfomuseum-data-whosonfirst/
+
+*/
+
 import (
 	"context"
 	"database/sql"
@@ -60,6 +69,7 @@ func NewSQLWriter(ctx context.Context, uri string) (wof_writer.Writer, error) {
 		"spelunker-tables",
 		"spatial-tables",
 		"all",
+		"index-alt",
 		"strict-alt-files",
 	}
 
