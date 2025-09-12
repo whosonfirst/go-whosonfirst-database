@@ -58,28 +58,9 @@ func (t *WhosonfirstTable) InitializeTable(ctx context.Context, db *sql.DB) erro
 	return database_sql.CreateTableIfNecessary(ctx, db, t)
 }
 
-func (t *WhosonfirstTable) IndexRecord(ctx context.Context, db *sql.DB, i interface{}) error {
+func (t *WhosonfirstTable) IndexRecord(ctx context.Context, tx *sql.Tx, i interface{}) error {
 
-	tx, err := db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
-
-	if err != nil {
-		return fmt.Errorf("Failed to create transaction, %w", err)
-	}
-
-	err = t.IndexFeature(ctx, tx, i.([]byte))
-
-	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("Failed to index %s table, %w", t.Name(), err)
-	}
-
-	err = tx.Commit()
-
-	if err != nil {
-		return fmt.Errorf("Failed to commit transaction, %w", err)
-	}
-
-	return nil
+	return t.IndexFeature(ctx, tx, i.([]byte))
 }
 
 func (t *WhosonfirstTable) IndexFeature(ctx context.Context, tx *sql.Tx, body []byte, custom ...interface{}) error {
