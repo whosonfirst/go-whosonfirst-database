@@ -6,6 +6,14 @@ Go package implementing common properties and methods for working with Who's On 
 
 Documentation is incomplete at this time.
 
+## Motivation
+
+The package merges code from and supersedes the following packages:
+
+* [whosonfirst/go-whosonfirst-mysql](https://github.com/whosonfirst/go-whosonfirst-mysql)
+* [whosonfirst/go-whosonfirst-database-sql](https://github.com/whosonfirst/go-whosonfirst-database-sql)
+* [whosonfirst/go-whosonfirst-database-sqlite](https://github.com/whosonfirst/go-whosonfirst-database-sqlite)
+
 ## Tools
 
 ```
