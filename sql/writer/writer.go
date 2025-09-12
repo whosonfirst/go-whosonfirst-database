@@ -17,16 +17,17 @@ import (
 
 func init() {
 	ctx := context.Background()
-	wof_writer.RegisterWriter(ctx, "sql", NewMySQLWriter)
+	wof_writer.RegisterWriter(ctx, "wof-sql", NewSQLWriter)
 }
 
-type MySQLWriter struct {
+// SQLWriter implements the `whosonfirst/go-writer/v3.Writer` interface for `database/sql` compatible Who's On First databases.
+type SQLWriter struct {
 	wof_writer.Writer
 	db     *sql.DB
 	tables []database_sql.Table
 }
 
-func NewMySQLWriter(ctx context.Context, uri string) (wof_writer.Writer, error) {
+func NewSQLWriter(ctx context.Context, uri string) (wof_writer.Writer, error) {
 
 	u, err := url.Parse(uri)
 
@@ -42,56 +43,92 @@ func NewMySQLWriter(ctx context.Context, uri string) (wof_writer.Writer, error) 
 		return nil, fmt.Errorf("Failed to create database, %w", err)
 	}
 
-	index_geojson := true
-	index_whosonfirst := true
+	init_opts := new(wof_tables.InitTablesOptions)
 
-	if q.Get("geojson") != "" {
-
-		index, err := strconv.ParseBool(q.Get("geojson"))
-
-		if err != nil {
-			return nil, fmt.Errorf("Failed to parse ?geojson= parameter, %w", err)
-		}
-
-		index_geojson = index
+	params := []string{
+		"rtree",
+		"geojson",
+		"properties",
+		"spr",
+		"spelunker",
+		"concordances",
+		"ancestors",
+		"search",
+		"names",
+		"supersedes",
+		"geometries",
+		"spelunker-tables",
+		"spatial-tables",
+		"all",
+		"strict-alt-files",
 	}
 
-	if q.Get("whosonfirst") != "" {
+	for _, p := range params {
 
-		index, err := strconv.ParseBool(q.Get("whosonfirst"))
-
-		if err != nil {
-			return nil, fmt.Errorf("Failed to parse ?whosonfirst= parameter, %w", err)
+		if !q.Has(p) {
+			continue
+		}
+		if q.Get(p) == "" {
+			continue
 		}
 
-		index_whosonfirst = index
-	}
+		switch p {
+		case "index_alt":
+			init_opts.IndexAlt = q[p]
+		default:
 
-	to_index := make([]database_sql.Table, 0)
+			v, err := strconv.ParseBool(q.Get(p))
 
-	if index_geojson {
+			if err != nil {
+				return nil, fmt.Errorf("Failed to parse %s= parameter, %w", p, err)
+			}
 
-		t, err := wof_tables.NewGeoJSONTableWithDatabase(ctx, db)
+			switch p {
+			case "rtree":
+				init_opts.RTree = v
+			case "geojson":
+				init_opts.GeoJSON = v
+			case "properties":
+				init_opts.Properties = v
+			case "spr":
+				init_opts.SPR = v
+			case "spelunker":
+				init_opts.Spelunker = v
+			case "concordances":
+				init_opts.Concordances = v
+			case "ancestors":
+				init_opts.Ancestors = v
+			case "search":
+				init_opts.Search = v
+			case "names":
+				init_opts.Names = v
+			case "supersedes":
+				init_opts.Supersedes = v
+			case "geometries":
+				init_opts.Geometries = v
+			case "spelunker-tables":
+				init_opts.SpelunkerTables = v
+			case "spatial-tables":
+				init_opts.SpatialTables = v
+			case "all":
+				init_opts.All = v
+			case "strict-alt-files":
+				init_opts.StrictAltFiles = v
+			default:
+				slog.Warn("Invalid or unsupported parameter", "parameter", p)
+			}
 
-		if err != nil {
-			return nil, fmt.Errorf("Failed to create GeoJSON table, %w", err)
 		}
 
-		to_index = append(to_index, t)
 	}
 
-	if index_whosonfirst {
+	to_index, err := wof_tables.InitTables(ctx, db, init_opts)
 
-		t, err := wof_tables.NewWhosonfirstTableWithDatabase(ctx, db)
-
-		if err != nil {
-			return nil, fmt.Errorf("Failed to create Whosonfirst table, %w", err)
-		}
-
-		to_index = append(to_index, t)
+	if err != nil {
+		return nil, err
 	}
 
-	wr := &MySQLWriter{
+	wr := &SQLWriter{
 		db:     db,
 		tables: to_index,
 	}
@@ -99,7 +136,7 @@ func NewMySQLWriter(ctx context.Context, uri string) (wof_writer.Writer, error) 
 	return wr, nil
 }
 
-func (wr *MySQLWriter) Write(ctx context.Context, path string, r io.ReadSeeker) (int64, error) {
+func (wr *SQLWriter) Write(ctx context.Context, path string, r io.ReadSeeker) (int64, error) {
 
 	body, err := io.ReadAll(r)
 
@@ -116,19 +153,19 @@ func (wr *MySQLWriter) Write(ctx context.Context, path string, r io.ReadSeeker) 
 	return 0, nil
 }
 
-func (wr *MySQLWriter) WriterURI(ctx context.Context, uri string) string {
+func (wr *SQLWriter) WriterURI(ctx context.Context, uri string) string {
 	return uri
 }
 
-func (wr *MySQLWriter) Flush(ctx context.Context) error {
+func (wr *SQLWriter) Flush(ctx context.Context) error {
 	return nil
 }
 
-func (wr *MySQLWriter) Close(ctx context.Context) error {
+func (wr *SQLWriter) Close(ctx context.Context) error {
 	return nil
 }
 
-func (wr *MySQLWriter) SetLogger(ctx context.Context, logger *log.Logger) error {
-	slog.Debug("MySQLWriter no longer supports SetLogger. Please use log/slog methods instead.")
+func (wr *SQLWriter) SetLogger(ctx context.Context, logger *log.Logger) error {
+	slog.Debug("SQLWriter no longer supports SetLogger. Please use log/slog methods instead.")
 	return nil
 }
