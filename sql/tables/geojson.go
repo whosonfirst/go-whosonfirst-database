@@ -98,7 +98,6 @@ func (t *GeoJSONTable) Schema(db *sql.DB) (string, error) {
 }
 
 func (t *GeoJSONTable) InitializeTable(ctx context.Context, db *sql.DB) error {
-
 	return database_sql.CreateTableIfNecessary(ctx, db, t)
 }
 
