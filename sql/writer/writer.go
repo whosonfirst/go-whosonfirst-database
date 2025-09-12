@@ -107,26 +107,13 @@ func (wr *MySQLWriter) Write(ctx context.Context, path string, r io.ReadSeeker) 
 		return 0, fmt.Errorf("Failed to read document, %w", err)
 	}
 
-	tx, err := wr.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
-
-	if err != nil {
-		return 0, fmt.Errorf("Failed to create database transaction, %w", err)
-	}
-
 	for _, t := range wr.tables {
 
-		err = t.IndexRecord(ctx, tx, body)
+		err = t.IndexRecord(ctx, wr.db, body)
 
 		if err != nil {
-			tx.Rollback()
 			return 0, fmt.Errorf("Failed to index %s table for %s, %w", t.Name(), path, err)
 		}
-	}
-
-	err = tx.Commit()
-
-	if err != nil {
-		return 0, fmt.Errorf("Failed to commit transaction, %w", err)
 	}
 
 	return 0, nil
