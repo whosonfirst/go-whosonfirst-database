@@ -8,6 +8,8 @@ import (
 	"runtime"
 	"slices"
 
+	_ "github.com/whosonfirst/go-whosonfirst-database/sql"
+	
 	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/sfomuseum/go-flags/flagset"
 	"github.com/whosonfirst/go-reader/v2"

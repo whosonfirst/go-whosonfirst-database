@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 
+	_ "github.com/whosonfirst/go-whosonfirst-database/sql"
+	
 	database_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/sfomuseum/go-flags/flagset"
 	"github.com/whosonfirst/go-whosonfirst-database/sql/prune"
@@ -161,9 +163,6 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 		to_prune = append(to_prune, cn)
 	}
 
-	// see the way we don't check all here - that's so people who don't have
-	// spatialite installed can still use all (20180122/thisisaaronland)
-
 	if geometries {
 
 		gm, err := tables.NewGeometriesTableWithDatabase(ctx, db)
@@ -175,13 +174,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 		to_prune = append(to_prune, gm)
 	}
 
-	// see the way we don't check all here either - that's because this table can be
-	// brutally slow to index and should probably really just be a separate database
-	// anyway... (20180214/thisisaaronland)
-
 	if search {
-
-		// ALT FILES...
 
 		st, err := tables.NewSearchTableWithDatabase(ctx, db)
 
@@ -196,12 +189,10 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 		return fmt.Errorf("You forgot to specify which (any) tables to prune")
 	}
 
-	for _, iterator_source := range fs.Args() {
-		err := prune.PruneTablesWithIterator(ctx, iterator_uri, iterator_source, db, to_prune...)
-
-		if err != nil {
-			return fmt.Errorf("Failed to iterate %s, %w", iterator_source, err)
-		}
+	err = prune.PruneTables(ctx, db, to_prune...)
+	
+	if err != nil {
+		return fmt.Errorf("Failed to prune tables, %w", err)
 	}
 
 	return nil

@@ -66,6 +66,8 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 		return fmt.Errorf("Failed to create new iterator, %w", err)
 	}
 
+	defer iter.Close()
+	
 	done_ch := make(chan bool)
 	t1 := time.Now()
 
@@ -77,13 +79,6 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 
 		t2 := time.Since(t1)
 		i := iter.Seen()
-
-		idx.mu.RLock()
-		defer idx.mu.RUnlock()
-
-		for t, d := range idx.table_timings {
-			slog.Info("Time to index table", "table", t, "count", i, "time", d)
-		}
 
 		slog.Info("Time to index all", "count", i, "time", t2)
 	}
@@ -127,12 +122,6 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 		}
 	}
 
-	err = iter.Close()
-
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -170,6 +159,6 @@ func (idx *Indexer) IndexIteratorRecord(ctx context.Context, rec *iterate.Record
 		}
 	}
 
-	logger.Info("Indexed database record")
+	logger.Debug("Indexed database record")
 	return nil
 }

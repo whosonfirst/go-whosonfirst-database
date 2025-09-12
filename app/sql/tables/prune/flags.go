@@ -7,7 +7,6 @@ import (
 )
 
 var database_uri string
-var iterator_uri string
 
 var all bool
 var ancestors bool
@@ -32,7 +31,6 @@ func DefaultFlagSet() *flag.FlagSet {
 	fs := flagset.NewFlagSet("index")
 
 	fs.StringVar(&database_uri, "database-uri", "", "...")
-	fs.StringVar(&iterator_uri, "iterator-uri", "repo://", "...")
 
 	fs.BoolVar(&all, "all", false, "Index all tables (except the 'search' and 'geometries' tables which you need to specify explicitly)")
 	fs.BoolVar(&ancestors, "ancestors", false, "Index the 'ancestors' tables")
