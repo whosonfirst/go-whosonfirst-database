@@ -18,6 +18,7 @@ require (
 	github.com/whosonfirst/go-whosonfirst-spelunker v0.0.6
 	github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.7
 	github.com/whosonfirst/go-whosonfirst-uri v1.3.0
+	github.com/whosonfirst/go-writer/v3 v3.1.1
 )
 
 require (
@@ -25,9 +26,11 @@ require (
 	github.com/aaronland/go-roster v1.0.0 // indirect
 	github.com/dominikbraun/graph v0.23.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/g8rswimmer/error-chain v1.0.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jtacoma/uritemplates v1.0.0 // indirect
+	github.com/natefinch/atomic v1.0.1 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
