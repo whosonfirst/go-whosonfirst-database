@@ -101,11 +101,11 @@ func (t *PropertiesTable) InitializeTable(ctx context.Context, db *sql.DB) error
 	return database_sql.CreateTableIfNecessary(ctx, db, t)
 }
 
-func (t *PropertiesTable) IndexRecord(ctx context.Context, tx *sql.Tx, i interface{}) error {
-	return t.IndexFeature(ctx, db, i.([]byte))
+func (t *PropertiesTable) IndexRecord(ctx context.Context, db *sql.DB, tx *sql.Tx, i interface{}) error {
+	return t.IndexFeature(ctx, db, tx, i.([]byte))
 }
 
-func (t *PropertiesTable) IndexFeature(ctx context.Context, tx *sql.Tx, f []byte) error {
+func (t *PropertiesTable) IndexFeature(ctx context.Context, db *sql.DB, tx *sql.Tx, f []byte) error {
 
 	is_alt := alt.IsAlt(f)
 

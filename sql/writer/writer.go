@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strconv"
 
-	sfom_sql "github.com/sfomuseum/go-database/sql"
+	database_sql "github.com/sfomuseum/go-database/sql"
 	wof_tables "github.com/whosonfirst/go-whosonfirst-database/sql/tables"
 	wof_writer "github.com/whosonfirst/go-writer/v3"
 )
@@ -23,7 +23,7 @@ func init() {
 type MySQLWriter struct {
 	wof_writer.Writer
 	db     *sql.DB
-	tables []sfom_sql.Table
+	tables []database_sql.Table
 }
 
 func NewMySQLWriter(ctx context.Context, uri string) (wof_writer.Writer, error) {
@@ -36,7 +36,7 @@ func NewMySQLWriter(ctx context.Context, uri string) (wof_writer.Writer, error) 
 
 	q := u.Query()
 
-	db, err := sfom_sql.OpenWithURI(ctx, uri)
+	db, err := database_sql.OpenWithURI(ctx, uri)
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create database, %w", err)
@@ -67,7 +67,7 @@ func NewMySQLWriter(ctx context.Context, uri string) (wof_writer.Writer, error) 
 		index_whosonfirst = index
 	}
 
-	to_index := make([]sfom_sql.Table, 0)
+	to_index := make([]database_sql.Table, 0)
 
 	if index_geojson {
 
@@ -107,13 +107,10 @@ func (wr *MySQLWriter) Write(ctx context.Context, path string, r io.ReadSeeker) 
 		return 0, fmt.Errorf("Failed to read document, %w", err)
 	}
 
-	for _, t := range wr.tables {
+	err = database_sql.IndexRecord(ctx, wr.db, body, wr.tables...)
 
-		err = t.IndexRecord(ctx, wr.db, body)
-
-		if err != nil {
-			return 0, fmt.Errorf("Failed to index %s table for %s, %w", t.Name(), path, err)
-		}
+	if err != nil {
+		return 0, fmt.Errorf("Failed to index record, %w", err)
 	}
 
 	return 0, nil

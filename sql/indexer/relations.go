@@ -180,13 +180,10 @@ func IndexRelationsFuncWithOptions(opts *IndexRelationsFuncOptions) IndexerPostI
 				return fmt.Errorf("Failed to read data for %s, %v", rel_path, err)
 			}
 
-			for _, t := range tables {
+			err = database_sql.IndexRecord(ctx, db, ancestor, tables...)
 
-				err = t.IndexRecord(ctx, db, ancestor)
-
-				if err != nil {
-					return fmt.Errorf("Failed to index ancestor (%s), %v", rel_path, err)
-				}
+			if err != nil {
+				return fmt.Errorf("Failed to index ancestor (%s), %v", rel_path, err)
 			}
 		}
 

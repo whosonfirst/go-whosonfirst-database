@@ -59,11 +59,11 @@ func (t *SearchTable) Schema(db *sql.DB) (string, error) {
 	return LoadSchema(db, SEARCH_TABLE_NAME)
 }
 
-func (t *SearchTable) IndexRecord(ctx context.Context, tx *sql.Tx, i interface{}) error {
-	return t.IndexFeature(ctx, tx, i.([]byte))
+func (t *SearchTable) IndexRecord(ctx context.Context, db *sql.DB, tx *sql.Tx, i interface{}) error {
+	return t.IndexFeature(ctx, db, tx, i.([]byte))
 }
 
-func (t *SearchTable) IndexFeature(ctx context.Context, tx *sql.Tx, f []byte) error {
+func (t *SearchTable) IndexFeature(ctx context.Context, db *sql.DB, tx *sql.Tx, f []byte) error {
 
 	if alt.IsAlt(f) {
 		return nil

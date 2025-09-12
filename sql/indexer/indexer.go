@@ -155,31 +155,10 @@ func (idx *Indexer) IndexIteratorRecord(ctx context.Context, rec *iterate.Record
 	idx.mu.Lock()
 	idx.mu.Unlock()
 
-	for _, t := range idx.options.Tables {
+	err = database_sql.IndexRecord(ctx, idx.options.DB, record, idx.options.Tables...)
 
-		logger := slog.Default()
-		logger = logger.With("path", rec.Path)
-		logger = logger.With("table", t.Name())
-
-		t1 := time.Now()
-
-		err := t.IndexRecord(ctx, idx.options.DB, record)
-
-		if err != nil {
-			return fmt.Errorf("Failed to index %s table, %w", t.Name(), err)
-		}
-
-		t2 := time.Since(t1)
-
-		n := t.Name()
-
-		_, ok := idx.table_timings[n]
-
-		if ok {
-			idx.table_timings[n] += t2
-		} else {
-			idx.table_timings[n] = t2
-		}
+	if err != nil {
+		return fmt.Errorf("Failed to index record, %w", err)
 	}
 
 	if idx.options.PostIndexFunc != nil {

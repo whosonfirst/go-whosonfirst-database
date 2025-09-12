@@ -11,7 +11,7 @@ import (
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-whosonfirst-feature/geometry"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
-	"github.com/whosonfirst/go-whosonfirst-uri"
+	_ "github.com/whosonfirst/go-whosonfirst-uri"
 )
 
 const WHOSONFIRST_TABLE_NAME string = "whosonfirst"
@@ -58,27 +58,16 @@ func (t *WhosonfirstTable) InitializeTable(ctx context.Context, db *sql.DB) erro
 	return database_sql.CreateTableIfNecessary(ctx, db, t)
 }
 
-func (t *WhosonfirstTable) IndexRecord(ctx context.Context, tx *sql.Tx, i interface{}) error {
-
-	return t.IndexFeature(ctx, tx, i.([]byte))
+func (t *WhosonfirstTable) IndexRecord(ctx context.Context, db *sql.DB, tx *sql.Tx, i interface{}) error {
+	return t.IndexFeature(ctx, db, tx, i.([]byte))
 }
 
-func (t *WhosonfirstTable) IndexFeature(ctx context.Context, tx *sql.Tx, body []byte, custom ...interface{}) error {
+func (t *WhosonfirstTable) IndexFeature(ctx context.Context, db *sql.DB, tx *sql.Tx, body []byte) error {
 
 	id, err := properties.Id(body)
 
 	if err != nil {
 		return fmt.Errorf("Failed to derive ID, %w", err)
-	}
-
-	var alt *uri.AltGeom
-
-	if len(custom) >= 1 {
-		alt = custom[0].(*uri.AltGeom)
-	}
-
-	if alt != nil {
-		return nil
 	}
 
 	geojson_geom, err := geometry.Geometry(body)

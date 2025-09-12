@@ -96,11 +96,11 @@ func (t *SpelunkerTable) InitializeTable(ctx context.Context, db *sql.DB) error 
 	return database_sql.CreateTableIfNecessary(ctx, db, t)
 }
 
-func (t *SpelunkerTable) IndexRecord(ctx context.Context, tx *sql.Tx, i interface{}) error {
-	return t.IndexFeature(ctx, tx, i.([]byte))
+func (t *SpelunkerTable) IndexRecord(ctx context.Context, db *sql.DB, tx *sql.Tx, i interface{}) error {
+	return t.IndexFeature(ctx, db, tx, i.([]byte))
 }
 
-func (t *SpelunkerTable) IndexFeature(ctx context.Context, tx *sql.Tx, f []byte) error {
+func (t *SpelunkerTable) IndexFeature(ctx context.Context, db *sql.DB, tx *sql.Tx, f []byte) error {
 
 	is_alt := alt.IsAlt(f)
 
