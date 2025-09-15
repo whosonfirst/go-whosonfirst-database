@@ -66,6 +66,8 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 		return fmt.Errorf("Failed to create new iterator, %w", err)
 	}
 
+	defer iter.Close()
+
 	done_ch := make(chan bool)
 	t1 := time.Now()
 
@@ -77,13 +79,6 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 
 		t2 := time.Since(t1)
 		i := iter.Seen()
-
-		idx.mu.RLock()
-		defer idx.mu.RUnlock()
-
-		for t, d := range idx.table_timings {
-			slog.Info("Time to index table", "table", t, "count", i, "time", d)
-		}
 
 		slog.Info("Time to index all", "count", i, "time", t2)
 	}
@@ -127,12 +122,6 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 		}
 	}
 
-	err = iter.Close()
-
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -155,31 +144,10 @@ func (idx *Indexer) IndexIteratorRecord(ctx context.Context, rec *iterate.Record
 	idx.mu.Lock()
 	idx.mu.Unlock()
 
-	for _, t := range idx.options.Tables {
+	err = database_sql.IndexRecord(ctx, idx.options.DB, record, idx.options.Tables...)
 
-		logger := slog.Default()
-		logger = logger.With("path", rec.Path)
-		logger = logger.With("table", t.Name())
-
-		t1 := time.Now()
-
-		err := t.IndexRecord(ctx, idx.options.DB, record)
-
-		if err != nil {
-			return fmt.Errorf("Failed to index %s table, %w", t.Name(), err)
-		}
-
-		t2 := time.Since(t1)
-
-		n := t.Name()
-
-		_, ok := idx.table_timings[n]
-
-		if ok {
-			idx.table_timings[n] += t2
-		} else {
-			idx.table_timings[n] = t2
-		}
+	if err != nil {
+		return fmt.Errorf("Failed to index record, %w", err)
 	}
 
 	if idx.options.PostIndexFunc != nil {
@@ -191,6 +159,6 @@ func (idx *Indexer) IndexIteratorRecord(ctx context.Context, rec *iterate.Record
 		}
 	}
 
-	logger.Info("Indexed database record")
+	logger.Debug("Indexed database record")
 	return nil
 }
