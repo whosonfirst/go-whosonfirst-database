@@ -30,6 +30,11 @@ Database support is enabled through tags. The following tags are supported:
 | sqlite3 | [mattn/go-sqlite3](https://github.com/mattn/go-sqlite3) | |
 | mysql | [go-sql-driver/mysql](https://github.com/go-sql-driver/mysql) | |
 
+The default `cli` Makefile target will build tools with the `sqlite3` tag. If, for example, you wanted to building the database indexing tool with support for MySQL you would do this:
+
+```
+go build -build mysql -mod vendor -ldflags="-s -w" -tags sqlite3 -o bin/wof-sql-index cmd/wof-sql-index/main.go
+```
 
 ### wof-sql-create
 
