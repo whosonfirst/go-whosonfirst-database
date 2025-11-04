@@ -112,10 +112,10 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 		logger := slog.Default()
 		logger = logger.With("path", rec.Path)
 
-		defer rec.Body.Close()
-
 		err = idx.IndexIteratorRecord(ctx, rec)
 
+		go rec.Body.Close()
+		
 		if err != nil {
 			logger.Error("Failed to index record", "error", err)
 			return err

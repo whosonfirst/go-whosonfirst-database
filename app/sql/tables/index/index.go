@@ -11,7 +11,7 @@ import (
 	_ "github.com/whosonfirst/go-whosonfirst-database/sql"
 
 	database_sql "github.com/sfomuseum/go-database/sql"
-	"github.com/sfomuseum/go-flags/flagset"
+	_ "github.com/sfomuseum/go-flags/flagset"
 	"github.com/whosonfirst/go-reader/v2"
 	"github.com/whosonfirst/go-whosonfirst-database/sql/indexer"
 	"github.com/whosonfirst/go-whosonfirst-database/sql/tables"
@@ -28,7 +28,7 @@ func Run(ctx context.Context) error {
 
 func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 
-	flagset.Parse(fs)
+	//flagset.Parse(fs)
 
 	if verbose {
 		slog.SetLogLoggerLevel(slog.LevelDebug)
@@ -170,6 +170,8 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 
 	uris := fs.Args()
 
+	slog.Info("URIS", "uris", uris)
+	
 	err = idx.IndexURIs(ctx, iterator_uri, uris...)
 
 	if err != nil {
