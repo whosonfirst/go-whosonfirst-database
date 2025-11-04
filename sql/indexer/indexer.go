@@ -103,23 +103,74 @@ func (idx *Indexer) IndexURIs(ctx context.Context, iterator_uri string, uris ...
 		}()
 	}
 
-	for rec, err := range iter.Iterate(ctx, uris...) {
+	iter_workers := 10
+	iter_throttle := make(chan bool, iter_workers)
+
+	for i := 0; i < iter_workers; i++ {
+		iter_throttle <- true
+	}
+
+	iter_ctx, iter_cancel := context.WithCancel(ctx)
+	iter_wg := new(sync.WaitGroup)
+
+	iter_err_ch := make(chan error)
+	var iter_err error
+
+	go func() {
+
+		for {
+			select {
+			case err := <-iter_err_ch:
+				iter_err = err
+				iter_cancel()
+				return
+			}
+		}
+	}()
+
+	for rec, err := range iter.Iterate(iter_ctx, uris...) {
 
 		if err != nil {
 			return err
 		}
 
-		logger := slog.Default()
-		logger = logger.With("path", rec.Path)
-
-		err = idx.IndexIteratorRecord(ctx, rec)
-
-		go rec.Body.Close()
-		
-		if err != nil {
-			logger.Error("Failed to index record", "error", err)
-			return err
+		select {
+		case <-iter_ctx.Done():
+			break
+		default:
+			<-iter_throttle
 		}
+
+		select {
+		case <-iter_ctx.Done():
+			break
+		default:
+			// carry on
+		}
+
+		iter_wg.Go(func() {
+
+			logger := slog.Default()
+			logger = logger.With("path", rec.Path)
+
+			defer func() {
+				rec.Body.Close()
+				iter_throttle <- true
+			}()
+
+			err = idx.IndexIteratorRecord(ctx, rec)
+
+			if err != nil {
+				logger.Error("Failed to index record", "error", err)
+				iter_err_ch <- err
+			}
+		})
+	}
+
+	iter_wg.Wait()
+
+	if iter_err != nil {
+		return iter_err
 	}
 
 	return nil
