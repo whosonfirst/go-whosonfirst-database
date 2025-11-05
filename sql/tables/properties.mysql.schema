@@ -1,0 +1,11 @@
+CREATE TABLE {{ .Name }} (
+    id BIGINT(20) UNSIGNED NOT NULL,
+    body TEXT,
+    is_alt BOOLEAN,
+    alt_label TEXT,
+    lastmodified BIGINT(20) UNSIGNED NOT NULL,
+    PRIMARY KEY (id, alt_label)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE INDEX {{ .Name }}_by_alt ON {{ .Name }} (id, is_alt, alt_label);
+CREATE INDEX {{ .Name }}_by_lastmod ON {{ .Name }} (lastmodified);

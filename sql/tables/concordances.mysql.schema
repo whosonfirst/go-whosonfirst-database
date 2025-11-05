@@ -1,0 +1,9 @@
+CREATE TABLE {{ .Name }} (
+	id BIGINT(20) UNISIGNED NOT NULL,
+	other_id VARCHAR(255) NOT NULL,
+	other_source VARCHAR(255),
+	lastmodified BIGINT(20) UNSIGNED NOT NULL,
+	UNIQUE KEY {{ .Name }}_by_other (id, other_source)	
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;;
+
+CREATE INDEX {{ .Name }}_other_id ON {{ .Name }} (other_source, other_id);
