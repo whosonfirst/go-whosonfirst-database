@@ -155,6 +155,7 @@ func RunWithOptions(ctx context.Context, opts *RunOptions) error {
 		DB:             db,
 		Tables:         to_index,
 		LoadRecordFunc: record_func,
+		Workers:        opts.MaxProcesses,
 	}
 
 	if opts.IndexRelations {
