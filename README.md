@@ -29,6 +29,7 @@ Database support is enabled through tags. The following tags are supported:
 | --- | --- | --- |
 | sqlite3 | [mattn/go-sqlite3](https://github.com/mattn/go-sqlite3) | |
 | mysql | [go-sql-driver/mysql](https://github.com/go-sql-driver/mysql) | |
+| postgres | [lib/pq](https://github.com/lib/pq) | |
 
 The default `cli` Makefile target will build tools with the `sqlite3` tag. If, for example, you wanted to building the database indexing tool with support for MySQL you would do this:
 
@@ -61,7 +62,7 @@ $> ./bin/wof-sql-create -h
   -rtree
     	Index the 'rtree' table
   -search
-    	Index the 'search' table (using SQLite FTS4 full-text indexer)
+    	Index the 'search' table (using SQLite FTS5 full-text indexer)
   -spatial-tables
     	If true then index the necessary tables for use with the whosonfirst/go-whosonfirst-spatial-sqlite package.
   -spelunker
@@ -113,7 +114,7 @@ $> ./bin/wof-sql-index -h
   -rtree
     	Index the 'rtree' table
   -search
-    	Index the 'search' table (using SQLite FTS4 full-text indexer)
+    	Index the 'search' table (using SQLite FTS5 full-text indexer)
   -spatial-tables
     	If true then index the necessary tables for use with the whosonfirst/go-whosonfirst-spatial-sqlite package.
   -spelunker
@@ -188,7 +189,7 @@ $> ./bin/wof-sql-prune -h
   -rtree
     	Index the 'rtree' table
   -search
-    	Index the 'search' table (using SQLite FTS4 full-text indexer)
+    	Index the 'search' table (using SQLite FTS5 full-text indexer)
   -spatial-tables
     	If true then index the necessary tables for use with the whosonfirst/go-whosonfirst-spatial-sqlite package.
   -spelunker

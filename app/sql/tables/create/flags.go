@@ -43,7 +43,7 @@ func DefaultFlagSet() *flag.FlagSet {
 	fs.BoolVar(&names, "names", false, "Index the 'names' table")
 	fs.BoolVar(&rtree, "rtree", false, "Index the 'rtree' table")
 	fs.BoolVar(&properties, "properties", false, "Index the 'properties' table")
-	fs.BoolVar(&search, "search", false, "Index the 'search' table (using SQLite FTS4 full-text indexer)")
+	fs.BoolVar(&search, "search", false, "Index the 'search' table (using SQLite FTS5 full-text indexer)")
 	fs.BoolVar(&spr, "spr", false, "Index the 'spr' table")
 	fs.BoolVar(&supersedes, "supersedes", false, "Index the 'supersedes' table")
 
