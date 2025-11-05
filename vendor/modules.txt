@@ -280,7 +280,7 @@ github.com/natefinch/atomic
 github.com/paulmach/orb
 github.com/paulmach/orb/encoding/wkt
 github.com/paulmach/orb/geojson
-# github.com/sfomuseum/go-database v0.0.16
+# github.com/sfomuseum/go-database v0.0.17
 ## explicit; go 1.24.0
 github.com/sfomuseum/go-database/sql
 # github.com/sfomuseum/go-edtf v1.2.1

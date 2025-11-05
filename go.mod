@@ -9,7 +9,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/paulmach/orb v0.12.0
-	github.com/sfomuseum/go-database v0.0.16
+	github.com/sfomuseum/go-database v0.0.17
 	github.com/sfomuseum/go-edtf v1.2.1
 	github.com/sfomuseum/go-flags v0.12.1
 	github.com/tidwall/gjson v1.18.0

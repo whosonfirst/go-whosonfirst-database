@@ -23,18 +23,23 @@ go build -mod vendor -ldflags="-s -w" -tags sqlite3 -o bin/wof-sql-index cmd/wof
 go build -mod vendor -ldflags="-s -w" -tags sqlite3 -o bin/wof-sql-prune cmd/wof-sql-prune/main.go
 ```
 
+## Databases
+
 Database support is enabled through tags. The following tags are supported:
 
 | Tag | Package | Notes |
 | --- | --- | --- |
 | sqlite3 | [mattn/go-sqlite3](https://github.com/mattn/go-sqlite3) | |
 | mysql | [go-sql-driver/mysql](https://github.com/go-sql-driver/mysql) | |
+| postgres | [lib/pq](https://github.com/lib/pq) | |
 
 The default `cli` Makefile target will build tools with the `sqlite3` tag. If, for example, you wanted to building the database indexing tool with support for MySQL you would do this:
 
 ```
 go build -build mysql -mod vendor -ldflags="-s -w" -tags sqlite3 -o bin/wof-sql-index cmd/wof-sql-index/main.go
 ```
+
+Support for MySQL and Postgres database should still be considered experimental. Most of the development to date has centered around SQLite so there will almost certainly be "gotchas", maybe even bugs, with other database engines.
 
 ### wof-sql-create
 
@@ -61,7 +66,7 @@ $> ./bin/wof-sql-create -h
   -rtree
     	Index the 'rtree' table
   -search
-    	Index the 'search' table (using SQLite FTS4 full-text indexer)
+    	Index the 'search' table (using SQLite FTS5 full-text indexer)
   -spatial-tables
     	If true then index the necessary tables for use with the whosonfirst/go-whosonfirst-spatial-sqlite package.
   -spelunker
@@ -113,7 +118,7 @@ $> ./bin/wof-sql-index -h
   -rtree
     	Index the 'rtree' table
   -search
-    	Index the 'search' table (using SQLite FTS4 full-text indexer)
+    	Index the 'search' table (using SQLite FTS5 full-text indexer)
   -spatial-tables
     	If true then index the necessary tables for use with the whosonfirst/go-whosonfirst-spatial-sqlite package.
   -spelunker
@@ -188,7 +193,7 @@ $> ./bin/wof-sql-prune -h
   -rtree
     	Index the 'rtree' table
   -search
-    	Index the 'search' table (using SQLite FTS4 full-text indexer)
+    	Index the 'search' table (using SQLite FTS5 full-text indexer)
   -spatial-tables
     	If true then index the necessary tables for use with the whosonfirst/go-whosonfirst-spatial-sqlite package.
   -spelunker
