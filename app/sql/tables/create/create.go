@@ -3,6 +3,7 @@ package create
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log/slog"
 
 	_ "github.com/whosonfirst/go-whosonfirst-database/sql"
@@ -35,7 +36,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 	db, err := database_sql.OpenWithURI(ctx, database_uri)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to create database connection, %w", err)
 	}
 
 	defer func() {
@@ -66,7 +67,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 	to_create, err := tables.InitTables(ctx, db, init_opts)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to initialize tables, %w", err)
 	}
 
 	db_opts := database_sql.DefaultConfigureDatabaseOptions()
