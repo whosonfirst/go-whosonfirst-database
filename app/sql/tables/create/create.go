@@ -51,6 +51,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 	init_opts := &tables.InitTablesOptions{
 		RTree:           rtree,
 		GeoJSON:         geojson,
+		Geometries:      geometries,
 		Properties:      properties,
 		SPR:             spr,
 		Spelunker:       spelunker,
