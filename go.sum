@@ -176,8 +176,8 @@ github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 h1:GFCKgm
 github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10/go.mod h1:t/avpk3KcrXxUnYOhZhMXJlSEyie6gQbtLq5NM3loB8=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/sfomuseum/go-database v0.0.16 h1:G5x50Gum5nt3ZNMgceAU2n10kdYbITQhJFTkGpaGJqU=
-github.com/sfomuseum/go-database v0.0.16/go.mod h1:rc7eTssSpED7hxJftyhSDLGD8007Nxhzwj8/KHa5LyQ=
+github.com/sfomuseum/go-database v0.0.17 h1:kMcdLS6RK24d4cFzfnIFhn0DW5l47mJKrCRzJZuA4Zo=
+github.com/sfomuseum/go-database v0.0.17/go.mod h1:rc7eTssSpED7hxJftyhSDLGD8007Nxhzwj8/KHa5LyQ=
 github.com/sfomuseum/go-edtf v1.2.1 h1:vyKvoNa4p6mmwp9AbbEdJoj+A5YK4G7S1QgmSNpXh7s=
 github.com/sfomuseum/go-edtf v1.2.1/go.mod h1:1rP0EJZ/84j3HO80vGcnG2T9MFBDAFyTNtjrr8cv3T4=
 github.com/sfomuseum/go-flags v0.12.1 h1:xvg3iEz510JPr9ItPxOOF2C12JnlplodT1V/1Ty7Pg8=

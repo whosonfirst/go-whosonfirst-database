@@ -23,6 +23,8 @@ go build -mod vendor -ldflags="-s -w" -tags sqlite3 -o bin/wof-sql-index cmd/wof
 go build -mod vendor -ldflags="-s -w" -tags sqlite3 -o bin/wof-sql-prune cmd/wof-sql-prune/main.go
 ```
 
+## Databases
+
 Database support is enabled through tags. The following tags are supported:
 
 | Tag | Package | Notes |
@@ -36,6 +38,8 @@ The default `cli` Makefile target will build tools with the `sqlite3` tag. If, f
 ```
 go build -build mysql -mod vendor -ldflags="-s -w" -tags sqlite3 -o bin/wof-sql-index cmd/wof-sql-index/main.go
 ```
+
+Support for MySQL and Postgres database should still be considered experimental. Most of the development to date has centered around SQLite so there will almost certainly be "gotchas", maybe even bugs, with other database engines.
 
 ### wof-sql-create
 
