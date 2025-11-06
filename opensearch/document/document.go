@@ -1,4 +1,4 @@
-// Package document provides methods for updating a single Who's On First document for indexing in Elasticsearch.
+// Package document provides methods for updating a single Who's On First document for indexing in OpenSearch.
 //
 // Note: One of the things you'll see in the code that makes up the `document` package is stuff like this:
 //
@@ -22,5 +22,5 @@ import (
 	"context"
 )
 
-// type PrepareDocumentFunc is a common method signature updating a Who's On First document for indexing in Elasticsearch.
+// type PrepareDocumentFunc is a common method signature updating a Who's On First document for indexing in OpenSearch.
 type PrepareDocumentFunc func(context.Context, []byte) ([]byte, error)

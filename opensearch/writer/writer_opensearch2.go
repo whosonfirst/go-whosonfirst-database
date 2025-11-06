@@ -13,12 +13,11 @@ import (
 	"sync"
 	"time"
 
-	// "github.com/opensearch-project/opensearch-go/v4"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchutil"
-	"github.com/whosonfirst/go-whosonfirst-elasticsearch/document"
+	wof_client "github.com/whosonfirst/go-whosonfirst-database/opensearch/client"
+	"github.com/whosonfirst/go-whosonfirst-database/opensearch/document"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
-	wof_client "github.com/whosonfirst/go-whosonfirst-opensearch/v4/client"
 	sp_document "github.com/whosonfirst/go-whosonfirst-spelunker/document"
 	wof_writer "github.com/whosonfirst/go-writer/v3"
 )

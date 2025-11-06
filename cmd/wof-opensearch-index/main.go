@@ -4,8 +4,8 @@ import (
 	"context"
 	"log"
 
-	_ "github.com/whosonfirst/go-whosonfirst-iterate-git/v3"
 	_ "github.com/whosonfirst/go-whosonfirst-database/opensearch/writer"
+	_ "github.com/whosonfirst/go-whosonfirst-iterate-git/v3"
 
 	"github.com/whosonfirst/go-whosonfirst-iterwriter/v4/app/iterwriter"
 )
