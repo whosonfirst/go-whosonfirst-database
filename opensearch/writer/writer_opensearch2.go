@@ -18,7 +18,6 @@ import (
 	wof_client "github.com/whosonfirst/go-whosonfirst-database/opensearch/client"
 	"github.com/whosonfirst/go-whosonfirst-database/opensearch/document"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
-	sp_document "github.com/whosonfirst/go-whosonfirst-spelunker/document"
 	wof_writer "github.com/whosonfirst/go-writer/v3"
 )
 
@@ -159,7 +158,7 @@ func NewOpensearchV2Writer(ctx context.Context, uri string) (wof_writer.Writer, 
 
 	prepare_funcs := make([]document.PrepareDocumentFunc, 0)
 
-	prepare_funcs = append(prepare_funcs, sp_document.PrepareSpelunkerV2Document)
+	prepare_funcs = append(prepare_funcs, document.PrepareSpelunkerV2Document)
 
 	wr.prepare_funcs = prepare_funcs
 

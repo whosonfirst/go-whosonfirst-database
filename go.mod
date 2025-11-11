@@ -16,6 +16,7 @@ require (
 	github.com/sfomuseum/go-edtf v1.2.1
 	github.com/sfomuseum/go-flags v0.12.1
 	github.com/tidwall/gjson v1.18.0
+	github.com/tidwall/sjson v1.2.5
 	github.com/whosonfirst/go-reader/v2 v2.1.0
 	github.com/whosonfirst/go-whosonfirst-feature v0.0.29
 	github.com/whosonfirst/go-whosonfirst-flags v0.5.2
@@ -23,7 +24,7 @@ require (
 	github.com/whosonfirst/go-whosonfirst-iterate/v3 v3.2.0
 	github.com/whosonfirst/go-whosonfirst-iterwriter/v4 v4.0.4
 	github.com/whosonfirst/go-whosonfirst-names v0.1.0
-	github.com/whosonfirst/go-whosonfirst-spelunker v0.0.7
+	github.com/whosonfirst/go-whosonfirst-placetypes v0.9.0
 	github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.8
 	github.com/whosonfirst/go-whosonfirst-uri v1.3.0
 	github.com/whosonfirst/go-writer/v3 v3.1.1
@@ -89,10 +90,8 @@ require (
 	github.com/skeema/knownhosts v1.3.1 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
-	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/whosonfirst/go-ioutil v1.0.2 // indirect
 	github.com/whosonfirst/go-rfc-5646 v0.1.0 // indirect
-	github.com/whosonfirst/go-whosonfirst-placetypes v0.9.0 // indirect
 	github.com/whosonfirst/go-whosonfirst-sources v0.1.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	go.mongodb.org/mongo-driver v1.11.4 // indirect
