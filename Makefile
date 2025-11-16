@@ -1,7 +1,7 @@
 GOMOD=$(shell test -f "go.work" && echo "readonly" || echo "vendor")
 LDFLAGS=-s -w
 
-TAGS=sqlite3
+TAGS=sqlite3,fts5
 
 cli:
 	@make cli-sql
