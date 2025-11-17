@@ -46,10 +46,16 @@ type OpensearchV2Writer struct {
 // Opensearch index using the github.com/opensearch-project/opensearch-go/v2 package configured by 'uri' which
 // is expected to take the form of:
 //
-//	opensearch://{HOST}:{PORT}/{INDEX}?{QUERY_PARAMETERS}
-//	opensearch2://{HOST}:{PORT}/{INDEX}?{QUERY_PARAMETERS}
+//	opensearch://{OPENSEARCH_HOST}:{OPENSEARCH_PORT}/{OPENSEARCH_INDEX}?{QUERY_PARAMETERS}
+//	opensearch2://{OPENSEARCH_HOST}:{OPENSEARCH_PORT}/{OPENSEARCH_INDEX}?{QUERY_PARAMETERS}
 //
 // Where {QUERY_PARAMETERS} may be one or more of the following:
+// * `debug` - A boolean value to configure the underlying OpenSearch client to write request and response bodies to STDOUT.
+// * `insecure` - A boolean value to disable TLS "InsecureSkipVerify" checks (for custom certificate authorities and the like).
+// * `require-tls` – A boolean value to ensure that all connections are made over HTTPS even if the OpenSearch port is not 443.
+// * `username` – The OpenSearch username for authenticated connections.
+// * `password` – The OpenSearch password for authenticated connections.
+// * `aws-credentials-uri` – A a valid `aaronland/go-aws-auth` URI used to create a Golang AWS authentication config used to sign requests to an AWS-hosted OpenSearch instance.
 // * ?bulk-index={BOOLEAN}. If true then writes will be performed using a "bulk indexer". Default is true.
 // * ?workers={INT}. The number of users to enable for bulk indexing. Default is 10.
 func NewOpensearchV2Writer(ctx context.Context, uri string) (wof_writer.Writer, error) {

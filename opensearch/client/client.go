@@ -38,6 +38,15 @@ type ClientOptions struct {
 	Debug bool
 }
 
+// ClientOptionsFromURI derives a new `ClientOptions` instance from 'uri' which is expected to take the form of:
+//	opensearch://{OPENSEARCH_HOST}:{OPENSEARCH_PORT}/{OPENSEARCH_INDEX}?{QUERY_PARAMETERS}
+// Where {QUERY_PARAMETERS} may be one or more of the following:
+// * `debug` - A boolean value to configure the underlying OpenSearch client to write request and response bodies to STDOUT.
+// * `insecure` - A boolean value to disable TLS "InsecureSkipVerify" checks (for custom certificate authorities and the like).
+// * `require-tls` – A boolean value to ensure that all connections are made over HTTPS even if the OpenSearch port is not 443.
+// * `username` – The OpenSearch username for authenticated connections.
+// * `password` – The OpenSearch password for authenticated connections.
+// * `aws-credentials-uri` – A a valid `aaronland/go-aws-auth` URI used to create a Golang AWS authentication config used to sign requests to an AWS-hosted OpenSearch instance.
 func ClientOptionsFromURI(ctx context.Context, uri string) (*ClientOptions, error) {
 
 	u, err := url.Parse(uri)
@@ -120,6 +129,15 @@ func ClientOptionsFromURI(ctx context.Context, uri string) (*ClientOptions, erro
 	return os_client_opts, nil
 }
 
+// ClientOptionsFromURI derives a new `opensearchapi.Client` instance from 'uri' which is expected to take the form of:
+//	opensearch://{OPENSEARCH_HOST}:{OPENSEARCH_PORT}/{OPENSEARCH_INDEX}?{QUERY_PARAMETERS}
+// Where valid query parameters are:
+// * `debug` - A boolean value to configure the underlying OpenSearch client to write request and response bodies to STDOUT.
+// * `insecure` - A boolean value to disable TLS "InsecureSkipVerify" checks (for custom certificate authorities and the like).
+// * `require-tls` – A boolean value to ensure that all connections are made over HTTPS even if the OpenSearch port is not 443.
+// * `username` – The OpenSearch username for authenticated connections.
+// * `password` – The OpenSearch password for authenticated connections.
+// * `aws-credentials-uri` – A a valid `aaronland/go-aws-auth` URI used to create a Golang AWS authentication config used to sign requests to an AWS-hosted OpenSearch instance.
 func NewClient(ctx context.Context, uri string) (*opensearchapi.Client, error) {
 
 	os_client_opts, err := ClientOptionsFromURI(ctx, uri)
